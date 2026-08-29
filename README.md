@@ -1,5 +1,7 @@
 # AdaptlyPost — Claude Code Plugin
 
+[![smithery badge](https://smithery.ai/badge/tarasshyn/adaptlypost)](https://smithery.ai/servers/tarasshyn/adaptlypost)
+
 Post and schedule to **9 social media platforms** from Claude Code: Instagram, TikTok, YouTube, X (Twitter), LinkedIn, Facebook, Pinterest, Threads, and Bluesky.
 
 ## Install
