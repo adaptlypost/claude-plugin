@@ -31,6 +31,7 @@ Once installed, Claude can:
 - **Check results** per-platform with success/failure and error details
 - **Retry** just the failed platforms
 - **Draft → publish** workflow — save drafts, review, publish later
+- **Read analytics** — views, likes, comments, followers and engagement per window, per platform and per post
 
 ## Example
 
