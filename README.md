@@ -15,11 +15,17 @@ Post and schedule to **10 social media platforms** from Claude Code: Instagram, 
 
 1. Create an account at [adaptlypost.com](https://adaptlypost.com)
 2. Connect your social media accounts
-3. Generate an API token at [Settings → API Tokens](https://adaptlypost.com/api-tokens)
+3. Generate an API token at [Settings → API Tokens](https://adaptlypost.com/api-tokens) and pick its role
 4. From inside Claude Code:
    ```
    ./scripts/adaptlypost.js setup --key adaptly_xxxxx
    ```
+
+### Roles
+
+A token is issued under a workspace role and never does more than the member who created it. Admin does everything, Editor creates, schedules and publishes, Contributor creates and edits its own drafts and uploads media but cannot schedule or publish, Viewer reads. Contributor is the safe choice when Claude should not post on its own.
+
+`./scripts/adaptlypost.js whoami` shows the role, the permission list and `can { draft, schedule, publish }`. An operation outside the role answers 403 with `code: permission_denied`; the skill tells Claude to stop, save a draft where that applies, and ask a workspace member to publish, instead of retrying or hunting for another key.
 
 ## What it does
 
