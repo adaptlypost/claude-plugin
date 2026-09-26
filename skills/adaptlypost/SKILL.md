@@ -2,7 +2,7 @@
 name: adaptlypost
 description: >
   Draft, schedule, publish and review social media posts on the Instagram, TikTok, YouTube, X (Twitter),
-  LinkedIn, Facebook, Pinterest, Threads, Bluesky and Mastodon accounts connected to the user's AdaptlyPost
+  LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon and Google Business Profile accounts connected to the user's AdaptlyPost
   workspaces, and read their analytics, all through the AdaptlyPost MCP server's tools. Use this skill
   WHENEVER the user wants to write or schedule a post, publish now, plan a content calendar, bulk schedule
   a batch, set up a recurring post, attach an image, video or PDF, check whether a post went out, retry a
@@ -90,7 +90,7 @@ Every call acts as the signed-in member, with the role they hold in that workspa
    array (`linkedinConnectionIds`, `twitterConnectionIds`, and so on). One account per platform per post.
    Skip accounts whose `status` is `unauthorized` and tell the user to reconnect them in the app.
 2. **Draft.** Keep to each network's length in characters: X 280, Bluesky 300, Threads 500, Mastodon 500,
-   Pinterest 500, Instagram 2,200, TikTok 2,200, LinkedIn 3,000, YouTube 5,000, Facebook 63,206. Use
+   Pinterest 500, Google Business Profile 1,500, Instagram 2,200, TikTok 2,200, LinkedIn 3,000, YouTube 5,000, Facebook 63,206. Use
    `platformTexts` when one network needs a shorter or different version. Save with `create_post` and
    `saveAsDraft: true`; a draft is safe and gives you a post id.
 3. **Show and ask.** Show the whole post: every account, the workspace if there are several, the time with
@@ -138,12 +138,18 @@ If the user already approved a new post word for word, you can call `create_post
 - **LinkedIn documents** (PDF, PPT, PPTX, DOC, DOCX): `contentType: DOCUMENT`, exactly one file in
   `mediaUrls`, only `LINKEDIN` in `platforms`, optional `linkedinConfigs.documentTitle`. Bulk scheduling
   does not take documents.
+- **Google Business Profile** takes text or one JPEG or PNG image, no video, carousels or documents. Each
+  location can carry `googleBusinessConfigs` with `topicType` `STANDARD`, `EVENT` or `OFFER`; Event and Offer
+  need `eventTitle`, `eventStart` and `eventEnd` in the business's local time (`YYYY-MM-DD` or
+  `YYYY-MM-DDTHH:mm`, no timezone), and an optional button (`callToActionType` `BOOK`, `ORDER`, `SHOP`,
+  `LEARN_MORE`, `SIGN_UP` or `CALL`) needs `callToActionUrl` unless it is `CALL`. Google reviews every post
+  and removes ones with phone numbers or emails in the text. No `postUrl` comes back for it.
 - **Carousels** use `contentType: CAROUSEL` with several media URLs.
 - **Alt text**: `mediaAltTexts` in the same order as `mediaUrls`, one per image. Write it for every image
   unless the user says not to.
 
 Platform names are uppercase: `INSTAGRAM`, `TIKTOK`, `YOUTUBE`, `TWITTER` (X), `LINKEDIN`, `FACEBOOK`,
-`PINTEREST`, `THREADS`, `BLUESKY`, `MASTODON`. Content types: `TEXT`, `IMAGE`, `VIDEO`, `CAROUSEL`,
+`PINTEREST`, `THREADS`, `BLUESKY`, `MASTODON`, `GOOGLE_BUSINESS`. Content types: `TEXT`, `IMAGE`, `VIDEO`, `CAROUSEL`,
 `DOCUMENT`.
 
 ## Changing the plan
@@ -159,7 +165,7 @@ Platform names are uppercase: `INSTAGRAM`, `TIKTOK`, `YOUTUBE`, `TWITTER` (X), `
   deleted (409); wait until `list_post_results` settles.
 - **Bulk**: `bulk_schedule_posts` takes up to 100 posts that share the same platforms, accounts and
   configs; an item can carry its own `tiktokConfigs`, `instagramConfigs`, `facebookConfigs`,
-  `youtubeConfigs` or `pinterestConfigs` to replace the shared ones. It has no draft mode, so show the whole batch as a table (time, network, text, media) and get
+  `youtubeConfigs`, `pinterestConfigs` or `googleBusinessConfigs` to replace the shared ones. It has no draft mode, so show the whole batch as a table (time, network, text, media) and get
   one explicit "yes" first. Read every result row; one bad item fails alone.
 - **Find posts** with `list_posts` (filter by `statuses`, `platforms`, `startDate`, `endDate`; page with
   `offset` while `hasMore` is true). Use `get_post` for one full record.

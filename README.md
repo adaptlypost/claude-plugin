@@ -2,7 +2,7 @@
 
 [![smithery badge](https://smithery.ai/badge/tarasshyn/adaptlypost)](https://smithery.ai/servers/tarasshyn/adaptlypost)
 
-Post and schedule to **10 social media platforms** from Claude Code: Instagram, TikTok, YouTube, X (Twitter), LinkedIn, Facebook, Pinterest, Threads, Bluesky, and Mastodon.
+Post and schedule to **11 social media platforms** from Claude Code: Instagram, TikTok, YouTube, X (Twitter), LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, and Google Business Profile.
 
 ## Install
 
@@ -30,7 +30,7 @@ An operation outside the role answers 403 with `code: permission_denied`. The sk
 
 Once installed, Claude can:
 
-- **Post** to 10 platforms simultaneously with per-platform caption overrides
+- **Post** to 11 platforms simultaneously with per-platform caption overrides
 - **Schedule** posts for any future time
 - **Bulk schedule** up to 100 posts at once
 - **Check results** per-platform with success/failure and error details
