@@ -13,19 +13,18 @@ Post and schedule to **10 social media platforms** from Claude Code: Instagram, 
 
 ## Setup
 
-1. Create an account at [adaptlypost.com](https://adaptlypost.com)
-2. Connect your social media accounts
-3. Generate an API token at [Settings → API Tokens](https://adaptlypost.com/api-tokens) and pick its role
-4. From inside Claude Code:
-   ```
-   ./scripts/adaptlypost.js setup --key adaptly_xxxxx
-   ```
+1. Create an account at [adaptlypost.com](https://adaptlypost.com) and connect your social media accounts.
+2. In Claude Code, run `/mcp`, pick `adaptlypost` and sign in with the email you use on AdaptlyPost.
 
-### Roles
+The plugin talks to AdaptlyPost only through its MCP server at `mcp.adaptlypost.com`, signed in with OAuth. It never asks for an API key and reads nothing from your environment or config files.
 
-A token is issued under a workspace role and never does more than the member who created it. Admin does everything, Editor creates, schedules and publishes, Contributor creates and edits its own drafts and uploads media but cannot schedule or publish, Viewer reads. Contributor is the safe choice when Claude should not post on its own.
+### Workspaces and roles
 
-An operation outside the role answers 403 with `code: permission_denied`; the skill tells Claude to stop, save a draft where that applies, and ask a workspace member to publish, instead of retrying or hunting for another key.
+A sign-in reaches every workspace you belong to. Claude calls `list_workspaces` to see them and passes a workspace id to the other tools; without one it works in your default workspace.
+
+In each workspace Claude acts with your own role there. Admin does everything, Editor creates, schedules and publishes, Contributor creates and edits its own drafts and uploads media but cannot schedule or publish, Viewer reads.
+
+An operation outside the role answers 403 with `code: permission_denied`. The skill tells Claude to stop, save a draft where that applies, and ask a workspace member to publish, instead of retrying.
 
 ## What it does
 
@@ -69,6 +68,7 @@ For Claude Desktop, Cursor, or other MCP-compatible clients:
 - Product: [adaptlypost.com](https://adaptlypost.com)
 - AI Agents: [adaptlypost.com/features/agents](https://adaptlypost.com/features/agents)
 - API Tokens: [adaptlypost.com/api-tokens](https://adaptlypost.com/api-tokens)
+- Privacy policy: [adaptlypost.com/privacy](https://adaptlypost.com/privacy)
 
 ## License
 
