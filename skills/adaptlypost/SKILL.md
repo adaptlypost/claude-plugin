@@ -6,8 +6,8 @@ description: >
   workspaces, and read their analytics, all through the AdaptlyPost MCP server's tools. Use this skill
   WHENEVER the user wants to write or schedule a post, publish now, plan a content calendar, bulk schedule
   a batch, set up a recurring post, attach an image, video or PDF, check whether a post went out, retry a
-  failed network, move or cancel a scheduled post, switch between workspaces or clients, or asks how posts,
-  followers, views or engagement are doing. Trigger it even for short asks like "post this", "schedule it
+  failed network, move or cancel a scheduled post, switch between workspaces or clients, write or rewrite a
+  caption with AI, generate an image for a post, or asks how posts, followers, views or engagement are doing. Trigger it even for short asks like "post this", "schedule it
   for Tuesday 9am", "what's queued this week", "why did the Instagram one fail" or "what was our best post
   last month".
 last-updated: 2026-09-27
@@ -33,6 +33,7 @@ If more than 30 days have passed since `last-updated`, tell the user the skill m
 | Check | `get_post`, `list_posts`, `list_post_results` |
 | Recurring posts | `create_post` with `recurrence`, then `list_recurring_posts`, `get_recurring_post`, `pause_recurring_post`, `resume_recurring_post`, `delete_recurring_post` |
 | Analytics | `get_analytics_overview`, `get_analytics_timeseries`, `get_platform_breakdown`, `list_post_analytics`, `get_analytics_sync_status`, `trigger_analytics_sync` |
+| AI captions and images | `generate_caption`, `refine_caption`, `generate_image`, `get_image_job` |
 
 ## Sign-in
 
@@ -54,7 +55,7 @@ One sign-in can reach several workspaces, across organizations.
 
 - `list_workspaces` returns each workspace's `id`, `name`, `organization`, `role`, `isDefault`, `current`
   and `can` (`draft`, `schedule`, `publish`).
-- Every other tool takes an optional `workspaceId`. Without it, tools act in the default workspace.
+- Every other tool takes an optional `workspaceId`. Without it, tools act in the workspace marked `current`.
 - Call `list_workspaces` when the user names a workspace, brand, client or organization, or when accounts
   or posts they expect are missing. Then pass that `workspaceId` on every call about it.
 - Account, post, upload and recurring post ids from one workspace do not exist in another. Never mix them.
@@ -70,16 +71,17 @@ Every call acts as the signed-in member, with the role they hold in that workspa
 |------|-----|--------|
 | Admin | Everything, including connecting accounts in the app | |
 | Editor | Create, schedule, publish, retry, bulk schedule, delete, edit any post, trigger an analytics sync | Connect or disconnect accounts |
-| Contributor | Create and edit its own drafts, upload media, read posts and analytics | Schedule, publish, retry, bulk schedule, delete non-drafts, touch other members' posts |
-| Viewer | Read accounts, posts and analytics | Any write |
+| Contributor | Create and edit its own drafts, upload media, generate captions and images, read posts and analytics | Schedule, publish, retry, bulk schedule, delete non-drafts, trigger an analytics sync, touch other members' posts |
+| Viewer | Read accounts, posts and analytics | Any write, AI generation |
 
 | Response | Meaning | What to do |
 |----------|---------|------------|
 | 403 `permission_denied` | The role cannot do this. The body names `requiredPermission` and `role` | Final. Do not retry. For a refused schedule or publish, save with `saveAsDraft: true` and tell the user a member with publish rights has to publish it. Otherwise relay the body's `message` |
 | 401 `token_issuer_lost_access` | The account behind this access is no longer in the workspace | Stop. Tell the user; signing in again through `/mcp` with a current member fixes it |
-| 403 `subscription_required` | The workspace's plan is not active | Tell the user. Retrying will not help |
+| 403 `subscription_required` | The organization's plan does not include API access or has lapsed. Every tool fails the same way | Tell the user to renew the plan. Retrying will not help |
 | 401 `oauth_account_not_found` | The user signed in with an email that has no AdaptlyPost account | Relay the message, which names that email. Ask them to run `/mcp`, clear the `adaptlypost` sign-in and sign in with the email they use on AdaptlyPost |
 | 403 `workspace_access_denied` | Wrong `workspaceId` | Pick one from `list_workspaces` |
+| 429 | Too many calls in a short time | Wait the number of seconds the error gives (`Retry-After`) before the next call. Do not loop |
 
 ## The core loop
 
@@ -97,7 +99,9 @@ Every call acts as the signed-in member, with the role they hold in that workspa
 4. **Go live.** `publish_draft` without `scheduledAt` publishes now; with a future `scheduledAt` it
    schedules. Content published now reaches the networks within moments and cannot be recalled.
 5. **Verify.** Publishing is asynchronous. Call `list_post_results` and report each network separately
-   until no row is PENDING or PUBLISHING. One network can fail while the others succeed.
+   until no row is PENDING or PUBLISHING. One network can fail while the others succeed. A TikTok row with
+   `tiktokDraftFallback: true` went to the TikTok inbox as a draft because of TikTok's daily cap; tell the
+   user to finish it in the TikTok app.
 6. **Fix failures.** Read each `errorMessage` first. Call `retry_failed_platforms` only after the cause is
    fixed (a reconnected account, replaced media); a platform-side restriction fails again.
 
@@ -127,7 +131,7 @@ If the user already approved a new post word for word, you can call `create_post
   TikTok cannot be part of a recurring post.
 - **Pinterest** needs `pinterestConfigs` with a `boardId`. No tool lists boards, so ask the user for it.
 - **Instagram, TikTok and YouTube** need media. Instagram and Facebook take `postType` `FEED`, `REEL` or
-  `STORY` in `instagramConfigs` and `facebookConfigs`. YouTube takes `postType` `VIDEO` or `SHORTS`,
+  `STORY` in `instagramConfigs` and `facebookConfigs`; `REEL` needs a video and `STORY` an image or video. YouTube takes `postType` `VIDEO` or `SHORTS`,
   `videoTitle` and `privacyStatus` in `youtubeConfigs`.
 - **Instagram trial reels**: `instagramConfigs.trialGraduation` (`MANUAL` or `SS_PERFORMANCE`) works only for
   a single video posted as a reel or feed video, on an account Instagram has enabled for trial reels.
@@ -146,14 +150,16 @@ Platform names are uppercase: `INSTAGRAM`, `TIKTOK`, `YOUTUBE`, `TWITTER` (X), `
 
 - **Edit** a DRAFT or SCHEDULED post with `update_post`; other statuses cannot be edited. Omitted fields
   keep their values. Sending `platforms` replaces every target, so resend every connection array and
-  config you want to keep. `mediaUrls` only take effect together with `platforms`.
+  config you want to keep. `mediaUrls` and `mediaAltTexts` only take effect together with `platforms`.
 - **Move** a scheduled post with `update_post` and a new `scheduledAt`. Moving it more than a minute into
   the past fails; use `publish_draft` without `scheduledAt` to publish now.
 - **Hold back** a scheduled post with `unschedule_post`. It becomes an undated draft and nothing is lost.
 - **Delete** with `delete_post` only when the user wants the post gone. Deleting a published post removes
-  AdaptlyPost's record only; the live posts stay on the networks.
+  AdaptlyPost's record only; the live posts stay on the networks. A post that is PUBLISHING cannot be
+  deleted (409); wait until `list_post_results` settles.
 - **Bulk**: `bulk_schedule_posts` takes up to 100 posts that share the same platforms, accounts and
-  configs. It has no draft mode, so show the whole batch as a table (time, network, text, media) and get
+  configs; an item can carry its own `tiktokConfigs`, `instagramConfigs`, `facebookConfigs`,
+  `youtubeConfigs` or `pinterestConfigs` to replace the shared ones. It has no draft mode, so show the whole batch as a table (time, network, text, media) and get
   one explicit "yes" first. Read every result row; one bad item fails alone.
 - **Find posts** with `list_posts` (filter by `statuses`, `platforms`, `startDate`, `endDate`; page with
   `offset` while `hasMore` is true). Use `get_post` for one full record.
@@ -170,6 +176,26 @@ series.
 Ask the user's timezone once per session unless they already gave it. Convert every requested time to an
 absolute ISO 8601 instant for `scheduledAt`; the `timezone` field is stored for display and does not shift
 the time. A time in the past publishes immediately, so check before sending.
+
+## AI captions and images
+
+Use the AI tools when the user asks for a caption or an image, or says "write something about X" without
+giving text. For a caption the user already wrote, just use their text.
+
+- **Captions.** `generate_caption` writes one from a `prompt`; `refine_caption` rewrites `originalText`
+  from an instruction ("shorter", "add a question"). Pass `platform` to keep it within that network's
+  length. Both return `{ caption }` and save nothing. Show it, then put it in a draft as usual.
+- **Images.** `generate_image` does not return the image. It returns a `jobId` right away. Call
+  `get_image_job` every few seconds until `status` is `completed` or `failed`, usually 10 to 40 seconds,
+  and stop after a couple of minutes. A completed job's `imageUrl` is public and goes straight into
+  `mediaUrls`; no `upload_media` needed. Pick `aspectRatio` for the target network (9:16 for stories and
+  reels, 4:5 for the Instagram feed). Reuse `sessionId` to keep related images together.
+- **Credits.** Each caption costs 2 of the member's AI credits, a standard image 2 and a premium image 4,
+  refunded when generation fails. A member who connected their own AI provider key in the app pays no
+  credits. With no credits left a caption call fails and an image job ends `failed` with the reason in
+  `error`: tell the user to top up or upgrade, and do not retry.
+- Generate only what the user asked for. Offer one or two variations, not a loop of them.
+- All four need the `ai.generate` permission: Admin, Editor and Contributor have it, Viewer does not.
 
 ## Analytics
 

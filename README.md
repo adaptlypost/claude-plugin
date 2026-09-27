@@ -1,4 +1,4 @@
-# AdaptlyPost — Claude Code Plugin
+# AdaptlyPost Claude Code plugin
 
 [![smithery badge](https://smithery.ai/badge/tarasshyn/adaptlypost)](https://smithery.ai/servers/tarasshyn/adaptlypost)
 
@@ -20,9 +20,9 @@ The plugin talks to AdaptlyPost only through its MCP server at `mcp.adaptlypost.
 
 ### Workspaces and roles
 
-A sign-in reaches every workspace you belong to. Claude calls `list_workspaces` to see them and passes a workspace id to the other tools; without one it works in your default workspace.
+A sign-in reaches every workspace you belong to. Claude calls `list_workspaces` to see them and passes a workspace id to the other tools; without one it works in the workspace `list_workspaces` marks `current`.
 
-In each workspace Claude acts with your own role there. Admin does everything, Editor creates, schedules and publishes, Contributor creates and edits its own drafts and uploads media but cannot schedule or publish, Viewer reads.
+In each workspace Claude acts with your own role there. Admin does everything, Editor creates, schedules and publishes, Contributor creates and edits its own drafts, uploads media and generates captions and images but cannot schedule or publish, Viewer reads.
 
 An operation outside the role answers 403 with `code: permission_denied`. The skill tells Claude to stop, save a draft where that applies, and ask a workspace member to publish, instead of retrying.
 
@@ -35,8 +35,10 @@ Once installed, Claude can:
 - **Bulk schedule** up to 100 posts at once
 - **Check results** per-platform with success/failure and error details
 - **Retry** just the failed platforms
-- **Draft → publish** workflow — save drafts, review, publish later
-- **Read analytics** — views, likes, comments, followers and engagement per window, per platform and per post
+- **Draft, then publish**: save drafts, review, publish later
+- **Repeat** a post daily, weekly or monthly, then pause, resume or stop the series
+- **Read analytics**: views, likes, comments, followers and engagement per window, per platform and per post
+- **Write captions and generate images** with AdaptlyPost AI, paid from your AI credits
 
 ## Example
 
