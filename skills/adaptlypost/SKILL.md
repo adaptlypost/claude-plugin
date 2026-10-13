@@ -27,6 +27,7 @@ If more than 30 days have passed since `last-updated`, tell the user the skill m
 | Pick a workspace | `list_workspaces` |
 | Find accounts | `list_accounts` |
 | Reel music | `search_instagram_audio` |
+| Pinterest boards | `list_pinterest_boards` |
 | Media | `upload_media`, `get_upload_urls` |
 | Write | `create_post`, `update_post`, `bulk_schedule_posts` |
 | Go live | `publish_draft`, `retry_failed_platforms` |
@@ -132,7 +133,12 @@ If the user already approved a new post word for word, you can call `create_post
 - **TikTok** needs `tiktokConfigs` with `privacyLevel` for every connection (`PUBLIC_TO_EVERYONE`,
   `MUTUAL_FOLLOW_FRIENDS`, `FOLLOWER_OF_CREATOR`, `SELF_ONLY`). Ask the user; do not assume public.
   TikTok cannot be part of a recurring post.
-- **Pinterest** needs `pinterestConfigs` with a `boardId`. No tool lists boards, so ask the user for it.
+- **Pinterest boards**: call `list_pinterest_boards` with the Pinterest account's id, ask the user which
+  board to pin to unless they named one, and pass its `id` as `boardId` in `pinterestConfigs`. A board
+  belongs to one Pinterest account, so list the boards of each account you post to. Without a `boardId`
+  the pin goes to a public board named "AdaptlyPost", created on the account the first time it is needed;
+  leave it out only when the user is happy with that board. A 400 from `list_pinterest_boards` usually
+  means the user has to reconnect the Pinterest account in the app.
 - **Instagram, TikTok and YouTube** need media. Instagram and Facebook take `postType` `FEED`, `REEL` or
   `STORY` in `instagramConfigs` and `facebookConfigs`; `REEL` needs a video and `STORY` an image, video or
   carousel (each item becomes its own story). `shareToStory: true` on a `FEED` or `REEL` post also posts
