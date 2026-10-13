@@ -22,15 +22,17 @@ filter. `list_post_analytics` sorts by `VIEWS`, `LIKES`, `COMMENTS`, `SHARES`, `
 
 - **Window.** `from` and `to` select posts published inside the window. The comparison is the window of the
   same length just before it. Say which dates you used.
-- **Coverage.** The last 180 days only. Dates before `historyHorizonAt` have no data, which is not the same
-  as zero activity.
+- **Coverage.** Connecting an account imports its posts from the 180 days before, and analytics are kept
+  from then on while it stays connected. Dates before `historyHorizonAt` have no data, which is not the
+  same as zero activity. A post's numbers refresh for 180 days after it is published, then hold.
 - **Freshness.** Metrics refresh every few hours; `lastSyncedAt` says when. `trigger_analytics_sync` is
   allowed once per workspace every 10 minutes. Inside the cooldown it returns `queued: false` with
   `cooldownSecondsRemaining`; do not retry in a loop. Poll `get_analytics_sync_status` until
   `syncInProgress` is false, then read the metrics again.
-- **Networks.** Facebook, Instagram, Threads, TikTok, Pinterest, Bluesky and YouTube report analytics. X and
-  Mastodon report nothing, and LinkedIn returns nothing until LinkedIn approves access. A network missing
-  from `get_platform_breakdown` has no data for the window.
+- **Networks.** Facebook, Instagram, Threads, TikTok, Pinterest, Bluesky, YouTube, X, LinkedIn and Google
+  Business Profile report analytics; Google Business Profile reports only how often each location was seen,
+  with no per-post numbers. Mastodon and Telegram report nothing. A network missing from
+  `get_platform_breakdown` has no data for the window.
 - **Partial metrics.** `partialMetrics` names metrics some selected network cannot report, and a metric no
   selected network reports is `null`. Compare networks only on metrics both list in `supportedMetrics`.
 - **Reconnect.** When `needsAnalyticsReconnect` is true for an account, it was connected before analytics

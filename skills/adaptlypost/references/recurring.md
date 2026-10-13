@@ -24,8 +24,8 @@ A recurring post (a series) publishes the same content on a schedule. Create it 
 
 | Field | Rule |
 |-------|------|
-| `frequency` | Required. `DAILY`, `WEEKLY` or `MONTHLY` |
-| `interval` | Every N days, weeks or months, 1 to 30 (default 1) |
+| `frequency` | Required. `DAILY`, `WEEKLY`, `MONTHLY` or `YEARLY` (same date each year; a series started on February 29 posts on February 28 in other years) |
+| `interval` | Every N days, weeks, months or years, 1 to 30 (default 1) |
 | `weekdays` | `WEEKLY` only, `MONDAY` to `SUNDAY`. The weekday of `scheduledAt` is always included |
 | `endsOn` | `YYYY-MM-DD`, the last day an occurrence may go out (inclusive). On or after the first post's day |
 | `maxOccurrences` | Total posts the series publishes, 2 to 365 |
