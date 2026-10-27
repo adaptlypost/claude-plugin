@@ -9,13 +9,16 @@ Pass the same `workspaceId` you use for posts when the user has several workspac
 | How did we do this month? Follower count? | `get_analytics_overview` |
 | Is it going up or down? When did it jump? | `get_analytics_timeseries` (`granularity` `DAILY`, `WEEKLY` or `MONTHLY`) |
 | Which network works best? | `get_platform_breakdown` |
-| Top posts, or how one post did | `list_post_analytics` (`sortBy: VIEWS`, small `limit`) |
+| Top posts | `list_top_posts` (`sortBy`, default `VIEWS`; `limit` up to 50) |
+| How one post did, or every post in a window | `list_post_analytics` |
+| What an account posted outside AdaptlyPost | `list_discovered_posts` |
 | Numbers look stale or empty | `get_analytics_sync_status` |
 | The user just published and wants numbers | `trigger_analytics_sync`, then poll `get_analytics_sync_status` |
 
 Every window tool takes `from` and `to` (ISO 8601, `to` not earlier than `from`).
-`get_analytics_overview`, `get_analytics_timeseries` and `list_post_analytics` also take a `platforms`
-filter. `list_post_analytics` sorts by `VIEWS`, `LIKES`, `COMMENTS`, `SHARES`, `SAVES`, `CLICKS`,
+`get_analytics_overview`, `get_analytics_timeseries`, `list_post_analytics`, `list_top_posts` and
+`list_discovered_posts` also take a `platforms` filter, and every window tool takes `connectionIds` to
+narrow it to some accounts. `list_post_analytics` sorts by `VIEWS`, `LIKES`, `COMMENTS`, `SHARES`, `SAVES`, `CLICKS`,
 `IMPRESSIONS`, `ENGAGEMENT_RATE` or `PUBLISHED_AT` (the default) and pages with `page` and `limit`.
 
 ## Rules that change the answer
@@ -26,12 +29,12 @@ filter. `list_post_analytics` sorts by `VIEWS`, `LIKES`, `COMMENTS`, `SHARES`, `
   from then on while it stays connected. Dates before `historyHorizonAt` have no data, which is not the
   same as zero activity. A post's numbers refresh for 180 days after it is published, then hold.
 - **Freshness.** Metrics refresh every few hours; `lastSyncedAt` says when. `trigger_analytics_sync` is
-  allowed once per workspace every 10 minutes. Inside the cooldown it returns `queued: false` with
+  allowed once per workspace every 4 hours. Inside the cooldown it returns `queued: false` with
   `cooldownSecondsRemaining`; do not retry in a loop. Poll `get_analytics_sync_status` until
   `syncInProgress` is false, then read the metrics again.
 - **Networks.** Facebook, Instagram, Threads, TikTok, Pinterest, Bluesky, YouTube, X, LinkedIn and Google
   Business Profile report analytics; Google Business Profile reports only how often each location was seen,
-  with no per-post numbers. Mastodon and Telegram report nothing. A network missing from
+  with no per-post numbers. Mastodon, Telegram and Tumblr report nothing. A network missing from
   `get_platform_breakdown` has no data for the window.
 - **Partial metrics.** `partialMetrics` names metrics some selected network cannot report, and a metric no
   selected network reports is `null`. Compare networks only on metrics both list in `supportedMetrics`.

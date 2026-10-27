@@ -1,7 +1,7 @@
 {
   "name": "adaptlypost",
-  "description": "Post and schedule to Instagram, TikTok, YouTube, X, LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, and Google Business Profile from your AI agent, and read post analytics.",
-  "version": "1.7.0",
+  "description": "Post and schedule to Instagram, TikTok, YouTube, X, LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr and Telegram from your AI agent, and read post analytics.",
+  "version": "1.8.0",
   "author": {
     "name": "AdaptlyPost",
     "url": "https://adaptlypost.com"
@@ -22,7 +22,9 @@
     "threads",
     "bluesky",
     "mastodon",
-    "google-business-profile"
+    "google-business-profile",
+    "tumblr",
+    "telegram"
   ],
   "icon": "assets/icon.svg",
   "privacyPolicyUrl": "https://adaptlypost.com/privacy"

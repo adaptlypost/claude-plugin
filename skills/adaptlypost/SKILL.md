@@ -2,15 +2,16 @@
 name: adaptlypost
 description: >
   Draft, schedule, publish and review social media posts on the Instagram, TikTok, YouTube, X (Twitter),
-  LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon and Google Business Profile accounts connected to
-  the user's AdaptlyPost workspaces, and read their analytics, all through the AdaptlyPost MCP server's tools. Use this skill
+  LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr and Telegram accounts
+  connected to the user's AdaptlyPost workspaces, and read their analytics, all through the AdaptlyPost MCP server's
+  tools. Also covers RSS feeds that post new articles, client connect links, removing accounts and webhooks. Use this skill
   WHENEVER the user wants to write or schedule a post, publish now, plan a content calendar, bulk schedule
   a batch, set up a recurring post, attach an image, video or PDF, check whether a post went out, retry a
   failed network, move or cancel a scheduled post, switch between workspaces or clients, write or rewrite a
   caption with AI, generate an image for a post, or asks how posts, followers, views or engagement are doing. Trigger it even for short asks like "post this", "schedule it
   for Tuesday 9am", "what's queued this week", "why did the Instagram one fail" or "what was our best post
   last month".
-last-updated: 2026-10-14
+last-updated: 2026-10-27
 ---
 
 # AdaptlyPost
@@ -25,16 +26,21 @@ If more than 30 days have passed since `last-updated`, tell the user the skill m
 | Job | Tools |
 |-----|-------|
 | Pick a workspace | `list_workspaces` |
+| What this sign-in may do | `get_me`, or `can` in `list_workspaces` |
 | Find accounts | `list_accounts` |
+| Manage accounts | `check_account` (Facebook pages), `remove_account`, `create_connect_link`, `revoke_connect_link` |
 | Reel music | `search_instagram_audio` |
 | Pinterest boards | `list_pinterest_boards`, or `boardName` when the user named the board |
 | Media | `upload_media`, `get_upload_urls` |
+| Check before posting | `validate_post`, `validate_bulk_posts` |
 | Write | `create_post`, `update_post`, `bulk_schedule_posts` |
 | Go live | `publish_draft`, `retry_failed_platforms` |
 | Take back | `unschedule_post`, `delete_post` |
 | Check | `get_post`, `list_posts`, `list_post_results` |
 | Recurring posts | `create_post` with `recurrence`, then `list_recurring_posts`, `get_recurring_post`, `pause_recurring_post`, `resume_recurring_post`, `delete_recurring_post` |
-| Analytics | `get_analytics_overview`, `get_analytics_timeseries`, `get_platform_breakdown`, `list_post_analytics`, `get_analytics_sync_status`, `trigger_analytics_sync` |
+| RSS feeds | `preview_rss_feed`, `create_rss_feed`, `list_rss_feeds`, `get_rss_feed`, `update_rss_feed`, `list_rss_feed_items`, `check_rss_feed`, `pause_rss_feed`, `resume_rss_feed`, `delete_rss_feed` |
+| Analytics | `get_analytics_overview`, `get_analytics_timeseries`, `get_platform_breakdown`, `list_post_analytics`, `list_top_posts`, `list_discovered_posts`, `get_analytics_sync_status`, `trigger_analytics_sync` |
+| Webhooks | `list_webhooks`, `get_webhook`, `create_webhook`, `update_webhook`, `test_webhook`, `delete_webhook` |
 | AI captions and images | `generate_caption`, `refine_caption`, `generate_image`, `get_image_job` |
 
 ## Sign-in
@@ -46,7 +52,8 @@ name.
 - If the tools are missing, or a call returns 401, tell the user to run `/mcp`, pick `adaptlypost` and sign
   in with the email they use on AdaptlyPost. Then stop until they say they are signed in.
 - The user needs an AdaptlyPost account ([adaptlypost.com](https://adaptlypost.com)) with social accounts
-  connected in the app. Connecting or disconnecting a social account happens in the app, not here.
+  connected in the app. The user connects their own accounts in the app; `create_connect_link` makes a link
+  someone else, such as a client, opens to connect theirs. `remove_account` disconnects one.
 - Never ask for an API key in chat. Never read keys or tokens from environment variables, `.env` files,
   config files or keychains, and never send one anywhere. If the user pastes a key, do not use it; point
   them to `/mcp` instead.
@@ -71,10 +78,10 @@ Every call acts as the signed-in member, with the role they hold in that workspa
 
 | Role | Can | Cannot |
 |------|-----|--------|
-| Admin | Everything, including connecting accounts in the app | |
-| Editor | Create, schedule, publish, retry, bulk schedule, delete, edit any post, trigger an analytics sync | Connect or disconnect accounts |
-| Contributor | Create and edit its own drafts, upload media, generate captions and images, read posts and analytics | Schedule, publish, retry, bulk schedule, delete non-drafts, trigger an analytics sync, touch other members' posts |
-| Viewer | Read accounts, posts and analytics | Any write, AI generation |
+| Admin | Everything, including removing accounts, checking Facebook pages and connect links | |
+| Editor | Create, schedule, publish, retry, bulk schedule, delete, edit any post, RSS feeds in any mode, trigger an analytics sync, manage webhooks | Remove accounts, check pages, connect links |
+| Contributor | Create and edit its own drafts, draft-mode RSS feeds, upload media, generate captions and images, read posts and analytics | Schedule, publish, retry, bulk schedule, delete non-drafts, trigger an analytics sync, webhooks, touch other members' posts or feeds |
+| Viewer | Read accounts, posts, RSS feeds, webhooks and analytics | Any write, AI generation |
 
 | Response | Meaning | What to do |
 |----------|---------|------------|
@@ -88,17 +95,20 @@ Every call acts as the signed-in member, with the role they hold in that workspa
 ## The core loop
 
 1. **Accounts.** Call `list_accounts` once per workspace per session. Posts take account ids, never
-   usernames. Facebook pages go in `pageIds`; every other network has its own `<platform>ConnectionIds`
-   array (`linkedinConnectionIds`, `twitterConnectionIds`, and so on). One account per platform per post.
+   usernames. The simplest form is `accountIds`, which works out each account's platform. Otherwise
+   Facebook pages go in `pageIds` and every other network has its own `<platform>ConnectionIds` array
+   (`linkedinConnectionIds`, `tumblrConnectionIds`, `telegramConnectionIds`, and so on).
    Skip accounts whose `status` is `unauthorized` and tell the user to reconnect them in the app.
 2. **Draft.** Keep to each network's length in characters: X 280, Bluesky 300, Threads 500, Mastodon 500,
-   Pinterest 500, Google Business Profile 1,500, Instagram 2,200, TikTok 2,200, LinkedIn 3,000, YouTube 5,000,
-   Facebook 63,206. Use
-   `platformTexts` when one network needs a shorter or different version. Save with `create_post` and
-   `saveAsDraft: true`; a draft is safe and gives you a post id.
+   Pinterest 500, Google Business Profile 1,500, Instagram 2,200, TikTok 2,200, LinkedIn 3,000, Telegram 4,096,
+   YouTube 5,000, Facebook 63,206. Use
+   `platformTexts` when one network needs a shorter or different version. For anything unusual (several
+   networks, media, stories, carousels), call `validate_post` with the same input first: it lists every
+   problem per account and creates nothing. Save with `create_post` and `saveAsDraft: true`; a draft is
+   safe and gives you a post id.
 3. **Show and ask.** Show the whole post: every account, the workspace if there are several, the time with
    its timezone, each network's visibility settings (TikTok privacy, YouTube privacy) and every caption,
-   including per-platform text, alt text, first comments, Instagram collaborators and Reel audio, any
+   including per-platform text, alt text, first comments, thread replies, Instagram collaborators, tags and Reel audio, any
    story that goes out alongside the post, and a Google Business Profile post's type and button. Wait for "yes". A "yes" covers that one post, not the next.
 4. **Go live.** `publish_draft` without `scheduledAt` publishes now; with a future `scheduledAt` it
    schedules. Content published now reaches the networks within moments and cannot be recalled.
@@ -123,8 +133,16 @@ If the user already approved a new post word for word, you can call `create_post
 - **Confirm deletes and retries** for each post id. A retry republishes immediately.
 - **Confirm recurring posts like any other.** Show the frequency, the first date and when it ends. A
   recurring post keeps publishing with nobody watching, so confirm before resuming one too.
-- **Connect links are secrets.** No tool here creates one. If the user shares a connect link, do not repeat
-  it to anyone else or paste it into files, and suggest revoking it in the app once it has been used.
+- **Connect links are secrets.** Create one with `create_connect_link` only when the user asks, give the
+  `url` to the user alone, and never paste it into files. Suggest `revoke_connect_link`, or `maxAccounts`
+  up front, so it stops working once used.
+- **Confirm `remove_account`** naming the account. It takes the account off every pending and recurring
+  post, and bringing it back means connecting it again.
+- **RSS feeds post with nobody watching.** Confirm the feed, the accounts, `postMode` and the text before
+  `create_rss_feed`, before switching a feed to `SCHEDULE` or `PUBLISH`, and before `resume_rss_feed`.
+  Show `preview_rss_feed` first. `DRAFT` mode is the safe default.
+- **Webhook secrets** come back once, from `create_webhook`. Give the secret to the user to store; do not
+  write it into files.
 - **No duplicate content** across several accounts on the same network, and do not flood the tools with
   repeated calls.
 
@@ -155,14 +173,31 @@ If the user already approved a new post word for word, you can call `create_post
   trending), then pass its `audioId` in `instagramConfigs.audio`, with optional `audioVolume` and
   `videoVolume` from 1 to 100. Only video reels, and only accounts with `supportsInstagramAudio: true`
   in `list_accounts` (connected through Facebook). Let the user pick the track; don't choose for them.
+- **Instagram user tags**: `instagramConfigs.userTags`, up to 20 public usernames on a single image, a
+  single video or a single story (not carousels). On a feed image each tag needs `x` and `y` from 0 to 1.
+  A private or unknown account is dropped and listed in `instagramUntaggedUsernames` in `get_post`.
+- **AI labels**: `instagramConfigs.aiGenerated` shows Instagram's "AI info" label;
+  `youtubeConfigs.aiGenerated` shows YouTube's "Altered or synthetic content" label;
+  `tiktokConfigs.aiGenerated` labels TikTok videos. Set them when the user made the media with AI.
 - **Instagram trial reels**: `instagramConfigs.trialGraduation` (`MANUAL` or `SS_PERFORMANCE`) works only for
   a single video posted as a reel or feed video, on an account Instagram has enabled for trial reels.
 - **LinkedIn documents** (PDF, PPT, PPTX, DOC, DOCX): `contentType: DOCUMENT`, exactly one file in
   `mediaUrls`, only `LINKEDIN` in `platforms`, optional `linkedinConfigs.documentTitle`. Bulk scheduling
   does not take documents.
+- **LinkedIn reshares**: `linkedinConfigs.reshareOf` takes a `urn:li:share:` or `urn:li:ugcPost:` URN (the
+  `platformPostId` of an earlier LinkedIn post) or a `linkedin.com/feed/update/<urn>` link, and posts the
+  text as commentary on it. `urn:li:activity:` links fail. Not available in bulk.
 - **Facebook text backgrounds**: `facebookConfigs.textFormatPresetId` (for example `106018623298955`, solid
   purple) on a `TEXT` post with no media and at most 130 characters. If Facebook refuses it, the post goes
   out as plain text.
+- **Facebook link carousels**: `facebookConfigs.imageLayout: CAROUSEL` with 2 to 5 images, `postType`
+  `FEED` and one `carouselCards` entry (`link`, optional `title` and `description`) per image. Facebook
+  shows the card text only for links to a website the Page owns. `GRID` is the plain photo grid.
+- **Tumblr** posts go in `tumblrConnectionIds`; `tumblrConfigs` adds up to 30 `tags`, a `title` and a
+  `sourceUrl`.
+- **Telegram** channels and groups go in `telegramConnectionIds`. Text up to 4,096 characters, up to 10
+  images (10 MB each) or one MP4 or MOV video (50 MB); a caption over 1,024 characters goes out as its
+  own message after the media.
 - **Google Business Profile** posts go in `googleBusinessConnectionIds`. Text or one JPEG or PNG image up to
   5 MB, no video or carousel. `googleBusinessConfigs` sets `topicType`: `STANDARD` (the default),
   `EVENT` or `OFFER`; events and offers need `eventTitle`, `eventStart` and `eventEnd` as `YYYY-MM-DD` or
@@ -173,7 +208,8 @@ If the user already approved a new post word for word, you can call `create_post
   charges far more for posts with links. `twitterKeepLinks: true` keeps them clickable only on AppSumo
   lifetime deals, for 20 credits instead of 2; any other plan gets a 400. Don't set it unless asked.
 - **Carousels** use `contentType: CAROUSEL` with 2 or more media URLs: up to 4 on X, Bluesky and Mastodon,
-  5 on Pinterest, 10 on Instagram, Facebook and Threads, 20 on LinkedIn and 35 on TikTok. Only Instagram
+  5 on Pinterest, 10 on Instagram, Facebook, Threads and Telegram, 20 on LinkedIn, 30 on Tumblr and 35 on
+  TikTok. Only Instagram
   and Threads mix images and videos.
 - **Alt text**: `mediaAltTexts` in the same order as `mediaUrls`, one per image. Write it for every image
   unless the user says not to.
@@ -186,10 +222,16 @@ the stored ones.
 
 - **First comments** (`firstComments: [{ platform, text }]`) go up under the post from the same account
   shortly after it publishes. LinkedIn (1,250 characters), X (280), Threads (500), Bluesky (300), Mastodon
-  (500) and YouTube (10,000) only, not on stories or private or made-for-kids YouTube videos. A failed
-  comment never fails the post: read `firstCommentStatus` and `firstCommentError` in `get_post`.
+  (500), YouTube (10,000), Facebook (8,000) and Instagram (2,200) only, not on stories or private or
+  made-for-kids YouTube videos. A Facebook Page or Instagram account connected before first comments came
+  to them needs one reconnect. A failed comment never fails the post: read `firstCommentStatus` and
+  `firstCommentError` in `get_post`.
+- **Threads of replies** (`threadReplies: [{ platform, texts }]`) turn the post into a thread on X, Threads,
+  Bluesky and Mastodon, up to 25 replies, each within that network's post length. A network cannot have
+  both a thread and a first comment. A failed thread never fails the post: read `threadStatus` and
+  `threadError` in `get_post`.
 - **Thumbnail per network** (`platformThumbnails: [{ platform, thumbnailUrl?, thumbnailTimestampMs? }]`)
-  for video posts. YouTube, Facebook and LinkedIn take an image, Instagram and Pinterest an image or a
+  for video posts. YouTube, Facebook, LinkedIn and Telegram take an image, Instagram and Pinterest an image or a
   frame, TikTok only a frame. Networks without an entry use the post's `thumbnailUrl` and
   `thumbnailTimestampMs`.
 - **Image shape** (`platformAspectRatios: [{ platform, aspectRatio, fit? }]`) for image and carousel
@@ -200,8 +242,7 @@ LinkedIn text can mention a company page as `@[Page Name](urn:li:organization:<i
 exactly as LinkedIn shows it.
 
 Platform names are uppercase: `INSTAGRAM`, `TIKTOK`, `YOUTUBE`, `TWITTER` (X), `LINKEDIN`, `FACEBOOK`,
-`PINTEREST`, `THREADS`, `BLUESKY`, `MASTODON`, `GOOGLE_BUSINESS`. Posts made in the app can also show
-`TELEGRAM`, which these tools cannot post to. Content types: `TEXT`, `IMAGE`, `VIDEO`, `CAROUSEL`,
+`PINTEREST`, `THREADS`, `BLUESKY`, `MASTODON`, `GOOGLE_BUSINESS`, `TUMBLR`, `TELEGRAM`. Content types: `TEXT`, `IMAGE`, `VIDEO`, `CAROUSEL`,
 `DOCUMENT`.
 
 ## Changing the plan
@@ -217,9 +258,11 @@ Platform names are uppercase: `INSTAGRAM`, `TIKTOK`, `YOUTUBE`, `TWITTER` (X), `
   deleted (409); wait until `list_post_results` settles.
 - **Bulk**: `bulk_schedule_posts` takes up to 100 posts that share the same platforms, accounts and
   configs; an item can carry its own `tiktokConfigs`, `instagramConfigs`, `facebookConfigs`,
-  `youtubeConfigs`, `pinterestConfigs` or `googleBusinessConfigs` to replace the shared ones, plus its own
-  `firstComments`, `platformThumbnails` and `platformAspectRatios`. It has no draft mode, so show the whole batch as a table (time, network, text, media) and get
-  one explicit "yes" first. Read every result row; one bad item fails alone.
+  `youtubeConfigs`, `pinterestConfigs`, `googleBusinessConfigs` or `tumblrConfigs` to replace the shared
+  ones, plus its own `firstComments`, `threadReplies`, `platformThumbnails` and `platformAspectRatios`.
+  Run `validate_bulk_posts` with the same input first and fix every item it flags. It has no draft mode,
+  so show the whole batch as a table (time, network, text, media) and get one explicit "yes" first. Read
+  every result row; one bad item fails alone.
 - **Find posts** with `list_posts` (filter by `statuses`, `platforms`, `startDate`, `endDate`; page with
   `offset` while `hasMore` is true). Use `get_post` for one full record.
 
@@ -229,6 +272,23 @@ Pass `recurrence` to `create_post` to repeat a post daily, weekly, monthly or ye
 `scheduledAt`, cannot be a draft and cannot include TikTok. Read
 [references/recurring.md](references/recurring.md) before creating, pausing, resuming or deleting a
 series.
+
+## RSS feeds
+
+A feed turns each new item of an RSS or Atom feed into a post on its target accounts (Facebook,
+Instagram, Threads, X, Bluesky, LinkedIn, Mastodon, Telegram and Google Business Profile), as a draft, a
+scheduled post or straight away (`postMode`). Text comes from a `template` with `{title}`, `{link}`,
+`{description}`, `{author}` and `{feed}`, or from AI (`contentMode: AI`, 1 credit per network per item).
+Items already in the feed when it is added are never posted unless `postLatestItem` is true. A workspace
+holds 20 feeds. When the user asks why an article did or did not go out, read `list_rss_feed_items`. A
+paused feed's `pauseReason` says why; fix that before `resume_rss_feed`.
+
+## Webhooks
+
+`create_webhook` registers a URL that receives every event (`post.published`, `post.partially_failed`,
+`post.failed`, `post.scheduled`, `account.unauthorized`, `image.completed`, `image.failed`), signed with
+the secret the response returns once. `test_webhook` sends a signed test event. An endpoint is turned off
+after 20 failed deliveries in a row; `update_webhook` with `active: true` turns it back on.
 
 ## Times
 
@@ -261,8 +321,8 @@ giving text. For a caption the user already wrote, just use their text.
 
 Read [references/analytics.md](references/analytics.md) before answering performance questions. Analytics
 cover posts published inside the window and refresh every few hours. Facebook, Instagram, Threads, TikTok,
-Pinterest, Bluesky, YouTube, X, LinkedIn and Google Business Profile report numbers; Mastodon and Telegram
-report nothing. Say which window your numbers cover. `list_post_results` is publishing status, not performance.
+Pinterest, Bluesky, YouTube, X, LinkedIn and Google Business Profile report numbers; Mastodon, Telegram and
+Tumblr report nothing. Say which window your numbers cover. `list_post_results` is publishing status, not performance.
 
 ## Output style
 
