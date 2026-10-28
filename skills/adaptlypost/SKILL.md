@@ -11,7 +11,7 @@ description: >
   caption with AI, generate an image for a post, or asks how posts, followers, views or engagement are doing. Trigger it even for short asks like "post this", "schedule it
   for Tuesday 9am", "what's queued this week", "why did the Instagram one fail" or "what was our best post
   last month".
-last-updated: 2026-10-27
+last-updated: 2026-10-28
 ---
 
 # AdaptlyPost
@@ -85,7 +85,7 @@ Every call acts as the signed-in member, with the role they hold in that workspa
 
 | Response | Meaning | What to do |
 |----------|---------|------------|
-| 403 `permission_denied` | The role cannot do this. The body names `requiredPermission` and `role` | Final. Do not retry. For a refused schedule or publish, save with `saveAsDraft: true` and tell the user a member with publish rights has to publish it. Otherwise relay the body's `message` |
+| 403 `permission_denied` | The role cannot do this. The body names `requiredPermission` and `role` | Final. Do not retry. For a refused schedule or publish, save with `saveAsDraft: true` (keep `scheduledAt` as the draft's planned date) and tell the user a member with publish rights has to publish it. Otherwise relay the body's `message` |
 | 401 `token_issuer_lost_access` | The account behind this access is no longer in the workspace | Stop. Tell the user; signing in again through `/mcp` with a current member fixes it |
 | 403 `subscription_required` | The organization's plan does not include API access or has lapsed. Every tool fails the same way | Tell the user to renew the plan. Retrying will not help |
 | 401 `oauth_account_not_found` | The user signed in with an email that has no AdaptlyPost account | Relay the message, which names that email. Ask them to run `/mcp`, clear the `adaptlypost` sign-in and sign in with the email they use on AdaptlyPost |
@@ -105,13 +105,18 @@ Every call acts as the signed-in member, with the role they hold in that workspa
    `platformTexts` when one network needs a shorter or different version. For anything unusual (several
    networks, media, stories, carousels), call `validate_post` with the same input first: it lists every
    problem per account and creates nothing. Save with `create_post` and `saveAsDraft: true`; a draft is
-   safe and gives you a post id.
+   safe and gives you a post id. When the user named a time, send it as `scheduledAt` too: the post stays a
+   draft, nothing is scheduled, and the time is kept as its planned date.
 3. **Show and ask.** Show the whole post: every account, the workspace if there are several, the time with
    its timezone, each network's visibility settings (TikTok privacy, YouTube privacy) and every caption,
    including per-platform text, alt text, first comments, thread replies, Instagram collaborators, tags and Reel audio, any
    story that goes out alongside the post, and a Google Business Profile post's type and button. Wait for "yes". A "yes" covers that one post, not the next.
-4. **Go live.** `publish_draft` without `scheduledAt` publishes now; with a future `scheduledAt` it
-   schedules. Content published now reaches the networks within moments and cannot be recalled.
+4. **Go live.** `publish_draft` with a future `scheduledAt` schedules for that time. Without `scheduledAt`,
+   a draft whose planned date is still in the future is scheduled for that date, and any other draft
+   (undated, or its planned date already past) publishes now. `publishNow: true` publishes now even when
+   the draft has a planned date; sending it with `scheduledAt` fails with 400. Tell the user which one will
+   happen before you call it. Content published now reaches the networks within moments and cannot be
+   recalled.
 5. **Verify.** Publishing is asynchronous. Call `list_post_results` and report each network separately
    until no row is PENDING or PUBLISHING. One network can fail while the others succeed. A TikTok row with
    `tiktokDraftFallback: true` went to the TikTok inbox as a draft because of TikTok's daily cap; tell the
@@ -251,8 +256,10 @@ Platform names are uppercase: `INSTAGRAM`, `TIKTOK`, `YOUTUBE`, `TWITTER` (X), `
   keep their values. Sending `platforms` replaces every target, so resend every connection array and
   config you want to keep. `mediaUrls` and `mediaAltTexts` only take effect together with `platforms`.
 - **Move** a scheduled post with `update_post` and a new `scheduledAt`. Moving it more than a minute into
-  the past fails; use `publish_draft` without `scheduledAt` to publish now.
+  the past fails; use `publish_draft` with `publishNow: true` to publish now. On a draft, a new
+  `scheduledAt` only changes its planned date; the post stays a draft until `publish_draft`.
 - **Hold back** a scheduled post with `unschedule_post`. It becomes an undated draft and nothing is lost.
+  Schedule it again with `publish_draft` and a `scheduledAt`.
 - **Delete** with `delete_post` only when the user wants the post gone. Deleting a published post removes
   AdaptlyPost's record only; the live posts stay on the networks. A post that is PUBLISHING cannot be
   deleted (409); wait until `list_post_results` settles.
