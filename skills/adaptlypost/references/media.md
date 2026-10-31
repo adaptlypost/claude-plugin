@@ -29,13 +29,34 @@ the tool call, so use it only for very small files. For anything larger, upload 
      '<uploadUrl>'
    ```
 
-3. Use `publicUrl` only after the PUT printed a 2xx code. If the PUT failed or the upload URL expired (1
-   hour), mint a new one and PUT again.
+3. Use `publicUrl` only after the PUT printed a 2xx code. If the upload URL expired (1 hour), mint a new
+   one and PUT again. If a proxy or firewall refused the PUT, for example a sandbox answering 403 because the
+   storage host is not on its allowlist, do not retry it: use the upload box below.
 
 Do not add an Authorization header to the upload URL. It is presigned and is not an AdaptlyPost API host.
 Send the upload URL nothing except the file the user named.
 
-An image the user pasted into the chat is not a file on disk. Ask for its path or a public URL.
+## A file you cannot send yourself
+
+An image the user pasted into the chat, a file on their phone or computer, and a file whose PUT a sandbox
+blocked all go through `open_upload_widget`. Never suggest a public GitHub repo, a gist or a Dropbox or
+Drive link instead.
+
+- In Claude chat it shows an upload box. The user picks the files, and when they finish the box sends a
+  message with the media URLs.
+- In Cowork and Claude Code the box can't show, so the call returns `status: upload_link` with `uploadUrl`
+  and `uploadId`. Give the user the link: it opens a page in their browser that takes files for 30
+  minutes. Wait until they say they finished, then call `open_upload_widget` again with that `uploadId`.
+
+The call with `uploadId` returns `status`:
+
+| `status` | Do this |
+|----------|---------|
+| `ready` | Pass `mediaUrls` to the post. Tell the user about any file listed in `failed` |
+| `saving` | Call again in a few seconds |
+| `waiting` | Nothing arrived yet. Ask the user whether they finished |
+| `failed` | Nothing could be saved. Tell the user the reason listed for each file |
+| `expired` | The link ran out unused. Call `open_upload_widget` without `uploadId` for a new one |
 
 ## Reuse
 

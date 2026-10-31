@@ -11,7 +11,7 @@ description: >
   caption with AI, generate an image for a post, or asks how posts, followers, views or engagement are doing. Trigger it even for short asks like "post this", "schedule it
   for Tuesday 9am", "what's queued this week", "why did the Instagram one fail" or "what was our best post
   last month".
-last-updated: 2026-10-28
+last-updated: 2026-10-31
 ---
 
 # AdaptlyPost
@@ -31,7 +31,7 @@ If more than 30 days have passed since `last-updated`, tell the user the skill m
 | Manage accounts | `check_account` (Facebook pages), `remove_account`, `create_connect_link`, `revoke_connect_link` |
 | Reel music | `search_instagram_audio` |
 | Pinterest boards | `list_pinterest_boards`, or `boardName` when the user named the board |
-| Media | `upload_media`, `get_upload_urls` |
+| Media | `upload_media`, `get_upload_urls`, `open_upload_widget` |
 | Check before posting | `validate_post`, `validate_bulk_posts` |
 | Write | `create_post`, `update_post`, `bulk_schedule_posts` |
 | Go live | `publish_draft`, `retry_failed_platforms` |
@@ -135,6 +135,9 @@ If the user already approved a new post word for word, you can call `create_post
 - **Uploaded media is public at once**, even if no post uses it. Only upload files the user named. Never
   upload hidden files, keys, credentials or `.env` files, and upload a document only when the user asked
   to post that document. See [references/media.md](references/media.md).
+- **A file you cannot send yourself** (pasted in the chat, on the user's device, or blocked by a sandbox
+  proxy) goes through `open_upload_widget`, never a public repo, gist or file-sharing link. See
+  [references/media.md](references/media.md).
 - **Confirm deletes and retries** for each post id. A retry republishes immediately.
 - **Confirm recurring posts like any other.** Show the frequency, the first date and when it ends. A
   recurring post keeps publishing with nobody watching, so confirm before resuming one too.
