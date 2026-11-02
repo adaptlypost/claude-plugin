@@ -78,11 +78,12 @@ network rejects a file, `list_post_results` says why; read the message before ch
 ## Alt text
 
 Pass `mediaAltTexts` in the same order as `mediaUrls`, one per image, up to 1,000 characters, `""` to skip
-one. X, Bluesky, Mastodon, LinkedIn, Facebook, Instagram and Threads use it; Pinterest takes the first one.
+one. X, Bluesky, Mastodon, Tumblr, WordPress, LinkedIn, Facebook, Instagram and Threads use it; Pinterest takes the first one.
 TikTok, YouTube, Google Business Profile and videos ignore it.
 
 ## Video thumbnails
 
 For video posts, `thumbnailUrl` sets a custom thumbnail image and `thumbnailTimestampMs` picks a frame from
-the video instead. The frame is used by Instagram, Pinterest and TikTok. To give one network a different
+the video instead. Both work on YouTube, Facebook, Instagram, LinkedIn, Pinterest, Telegram and TikTok; when
+both are sent the image wins everywhere except TikTok, which takes only a frame. To give one network a different
 thumbnail, use `platformThumbnails` (see SKILL.md).

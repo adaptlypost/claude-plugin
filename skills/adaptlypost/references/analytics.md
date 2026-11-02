@@ -34,7 +34,7 @@ narrow it to some accounts. `list_post_analytics` sorts by `VIEWS`, `LIKES`, `CO
   `syncInProgress` is false, then read the metrics again.
 - **Networks.** Facebook, Instagram, Threads, TikTok, Pinterest, Bluesky, YouTube, X, LinkedIn and Google
   Business Profile report analytics; Google Business Profile reports only how often each location was seen,
-  with no per-post numbers. Mastodon, Telegram and Tumblr report nothing. A network missing from
+  with no per-post numbers. Mastodon, Telegram, Tumblr and WordPress report nothing. A network missing from
   `get_platform_breakdown` has no data for the window.
 - **Partial metrics.** `partialMetrics` names metrics some selected network cannot report, and a metric no
   selected network reports is `null`. Compare networks only on metrics both list in `supportedMetrics`.

@@ -2,7 +2,7 @@
 name: adaptlypost
 description: >
   Draft, schedule, publish and review social media posts on the Instagram, TikTok, YouTube, X (Twitter),
-  LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr and Telegram accounts
+  LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress accounts
   connected to the user's AdaptlyPost workspaces, and read their analytics, all through the AdaptlyPost MCP server's
   tools. Also covers RSS feeds that post new articles, client connect links, removing accounts and webhooks. Use this skill
   WHENEVER the user wants to write or schedule a post, publish now, plan a content calendar, bulk schedule
@@ -11,7 +11,7 @@ description: >
   caption with AI, generate an image for a post, or asks how posts, followers, views or engagement are doing. Trigger it even for short asks like "post this", "schedule it
   for Tuesday 9am", "what's queued this week", "why did the Instagram one fail" or "what was our best post
   last month".
-last-updated: 2026-10-31
+last-updated: 2026-11-02
 ---
 
 # AdaptlyPost
@@ -31,6 +31,7 @@ If more than 30 days have passed since `last-updated`, tell the user the skill m
 | Manage accounts | `check_account` (Facebook pages), `remove_account`, `create_connect_link`, `revoke_connect_link` |
 | Reel music | `search_instagram_audio` |
 | Pinterest boards | `list_pinterest_boards`, or `boardName` when the user named the board |
+| WordPress categories | `list_wordpress_categories` |
 | Media | `upload_media`, `get_upload_urls`, `open_upload_widget` |
 | Check before posting | `validate_post`, `validate_bulk_posts` |
 | Write | `create_post`, `update_post`, `bulk_schedule_posts` |
@@ -97,11 +98,11 @@ Every call acts as the signed-in member, with the role they hold in that workspa
 1. **Accounts.** Call `list_accounts` once per workspace per session. Posts take account ids, never
    usernames. The simplest form is `accountIds`, which works out each account's platform. Otherwise
    Facebook pages go in `pageIds` and every other network has its own `<platform>ConnectionIds` array
-   (`linkedinConnectionIds`, `tumblrConnectionIds`, `telegramConnectionIds`, and so on).
+   (`linkedinConnectionIds`, `tumblrConnectionIds`, `telegramConnectionIds`, `wordpressConnectionIds`, and so on).
    Skip accounts whose `status` is `unauthorized` and tell the user to reconnect them in the app.
 2. **Draft.** Keep to each network's length in characters: X 280, Bluesky 300, Threads 500, Mastodon 500,
-   Pinterest 500, Google Business Profile 1,500, Instagram 2,200, TikTok 2,200, LinkedIn 3,000, Telegram 4,096,
-   YouTube 5,000, Facebook 63,206. Use
+   Pinterest 500, Google Business Profile 1,500, Instagram 2,200, TikTok 2,200 (4,000 on a photo post), LinkedIn 3,000, Telegram 4,096,
+   YouTube 5,000, Facebook 63,206, WordPress 100,000. Use
    `platformTexts` when one network needs a shorter or different version. For anything unusual (several
    networks, media, stories, carousels), call `validate_post` with the same input first: it lists every
    problem per account and creates nothing. Save with `create_post` and `saveAsDraft: true`; a draft is
@@ -174,7 +175,9 @@ If the user already approved a new post word for word, you can call `create_post
   carousel (each item becomes its own story). `shareToStory: true` on a `FEED` or `REEL` post also posts
   the same media as a story; the story is its own row in the results, skips the caption and takes videos up
   to 60 seconds. YouTube takes `postType` `VIDEO` or `SHORTS`, `videoTitle` and `privacyStatus` in
-  `youtubeConfigs`.
+  `youtubeConfigs`. When the video is not in English, set `youtubeConfigs.defaultAudioLanguage` to the
+  spoken language as a tag such as `pt-BR` or `es-419`, so YouTube does not treat it as English; `null`
+  clears a saved value. It does not turn off YouTube's automatic dubbing.
 - **Instagram collaborators**: `instagramConfigs.collaborators`, up to 3 usernames, on feed images,
   carousels and reels (not stories or trial reels). Each one has to accept the invite in Instagram.
 - **Instagram Reel audio**: find a track with `search_instagram_audio` (leave out `searchQuery` for
@@ -203,6 +206,14 @@ If the user already approved a new post word for word, you can call `create_post
   shows the card text only for links to a website the Page owns. `GRID` is the plain photo grid.
 - **Tumblr** posts go in `tumblrConnectionIds`; `tumblrConfigs` adds up to 30 `tags`, a `title` and a
   `sourceUrl`.
+- **WordPress** sites go in `wordpressConnectionIds`. The text becomes the body of a published blog post,
+  up to 100,000 characters: blank lines start paragraphs and bare links become clickable. Up to 20
+  images (20 MB each) or one MP4 or MOV video (500 MB); the first image is the featured image and the rest
+  follow the text. `wordpressConfigs` sets `title` (without one, the first line of the text cut to 100
+  characters), `excerpt`, `categoryIds` and `tags`. When the user names categories, call
+  `list_wordpress_categories` with the site's account id and pass the matching ids; without them WordPress
+  uses the site's default category. A tag the site lacks is created when the WordPress user may manage
+  tags. No first comments, threads or analytics.
 - **Telegram** channels and groups go in `telegramConnectionIds`. Text up to 4,096 characters, up to 10
   images (10 MB each) or one MP4 or MOV video (50 MB); a caption over 1,024 characters goes out as its
   own message after the media.
@@ -216,7 +227,7 @@ If the user already approved a new post word for word, you can call `create_post
   charges far more for posts with links. `twitterKeepLinks: true` keeps them clickable only on AppSumo
   lifetime deals, for 20 credits instead of 2; any other plan gets a 400. Don't set it unless asked.
 - **Carousels** use `contentType: CAROUSEL` with 2 or more media URLs: up to 4 on X, Bluesky and Mastodon,
-  5 on Pinterest, 10 on Instagram, Facebook, Threads and Telegram, 20 on LinkedIn, 30 on Tumblr and 35 on
+  5 on Pinterest, 10 on Instagram, Facebook, Threads and Telegram, 20 on LinkedIn and WordPress, 30 on Tumblr and 35 on
   TikTok. Only Instagram
   and Threads mix images and videos.
 - **Alt text**: `mediaAltTexts` in the same order as `mediaUrls`, one per image. Write it for every image
@@ -239,9 +250,9 @@ the stored ones.
   both a thread and a first comment. A failed thread never fails the post: read `threadStatus` and
   `threadError` in `get_post`.
 - **Thumbnail per network** (`platformThumbnails: [{ platform, thumbnailUrl?, thumbnailTimestampMs? }]`)
-  for video posts. YouTube, Facebook, LinkedIn and Telegram take an image, Instagram and Pinterest an image or a
-  frame, TikTok only a frame. Networks without an entry use the post's `thumbnailUrl` and
-  `thumbnailTimestampMs`.
+  for video posts. YouTube, Facebook, Instagram, LinkedIn, Pinterest and Telegram take an image or a frame
+  (the image wins when both are sent), TikTok only a frame. Networks without an entry use the post's
+  `thumbnailUrl` and `thumbnailTimestampMs`, which work on every one of these networks.
 - **Image shape** (`platformAspectRatios: [{ platform, aspectRatio, fit? }]`) for image and carousel
   posts on Instagram (`SQUARE`, `PORTRAIT`, `LANDSCAPE`) and TikTok (those plus `VERTICAL`). `fit` is
   `CROP` (default) or `PAD`, which keeps the whole image on a blurred background.
@@ -250,7 +261,7 @@ LinkedIn text can mention a company page as `@[Page Name](urn:li:organization:<i
 exactly as LinkedIn shows it.
 
 Platform names are uppercase: `INSTAGRAM`, `TIKTOK`, `YOUTUBE`, `TWITTER` (X), `LINKEDIN`, `FACEBOOK`,
-`PINTEREST`, `THREADS`, `BLUESKY`, `MASTODON`, `GOOGLE_BUSINESS`, `TUMBLR`, `TELEGRAM`. Content types: `TEXT`, `IMAGE`, `VIDEO`, `CAROUSEL`,
+`PINTEREST`, `THREADS`, `BLUESKY`, `MASTODON`, `GOOGLE_BUSINESS`, `TUMBLR`, `TELEGRAM`, `WORDPRESS`. Content types: `TEXT`, `IMAGE`, `VIDEO`, `CAROUSEL`,
 `DOCUMENT`.
 
 ## Changing the plan
@@ -268,7 +279,7 @@ Platform names are uppercase: `INSTAGRAM`, `TIKTOK`, `YOUTUBE`, `TWITTER` (X), `
   deleted (409); wait until `list_post_results` settles.
 - **Bulk**: `bulk_schedule_posts` takes up to 100 posts that share the same platforms, accounts and
   configs; an item can carry its own `tiktokConfigs`, `instagramConfigs`, `facebookConfigs`,
-  `youtubeConfigs`, `pinterestConfigs`, `googleBusinessConfigs` or `tumblrConfigs` to replace the shared
+  `youtubeConfigs`, `pinterestConfigs`, `googleBusinessConfigs`, `tumblrConfigs` or `wordpressConfigs` to replace the shared
   ones, plus its own `firstComments`, `threadReplies`, `platformThumbnails` and `platformAspectRatios`.
   Run `validate_bulk_posts` with the same input first and fix every item it flags. It has no draft mode,
   so show the whole batch as a table (time, network, text, media) and get one explicit "yes" first. Read
@@ -331,8 +342,8 @@ giving text. For a caption the user already wrote, just use their text.
 
 Read [references/analytics.md](references/analytics.md) before answering performance questions. Analytics
 cover posts published inside the window and refresh every few hours. Facebook, Instagram, Threads, TikTok,
-Pinterest, Bluesky, YouTube, X, LinkedIn and Google Business Profile report numbers; Mastodon, Telegram and
-Tumblr report nothing. Say which window your numbers cover. `list_post_results` is publishing status, not performance.
+Pinterest, Bluesky, YouTube, X, LinkedIn and Google Business Profile report numbers; Mastodon, Telegram,
+Tumblr and WordPress report nothing. Say which window your numbers cover. `list_post_results` is publishing status, not performance.
 
 ## Output style
 
