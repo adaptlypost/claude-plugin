@@ -240,13 +240,13 @@ Each of these is a list with one entry per platform, and works on `create_post`,
 the stored ones.
 
 - **First comments** (`firstComments: [{ platform, text }]`) go up under the post from the same account
-  shortly after it publishes. LinkedIn (1,250 characters), X (280), Threads (500), Bluesky (300), Mastodon
-  (500), YouTube (10,000), Facebook (8,000) and Instagram (2,200) only, not on stories or private or
+  shortly after it publishes. LinkedIn (1,250 characters), X (280), Bluesky (300), Mastodon (500),
+  YouTube (10,000), Facebook (8,000) and Instagram (2,200) only, not on stories or private or
   made-for-kids YouTube videos. A Facebook Page or Instagram account connected before first comments came
   to them needs one reconnect. A failed comment never fails the post: read `firstCommentStatus` and
   `firstCommentError` in `get_post`.
-- **Threads of replies** (`threadReplies: [{ platform, texts }]`) turn the post into a thread on X, Threads,
-  Bluesky and Mastodon, up to 25 replies, each within that network's post length. A network cannot have
+- **Threads of replies** (`threadReplies: [{ platform, texts }]`) turn the post into a thread on X, Bluesky
+  and Mastodon, up to 25 replies, each within that network's post length. A network cannot have
   both a thread and a first comment. A failed thread never fails the post: read `threadStatus` and
   `threadError` in `get_post`.
 - **Thumbnail per network** (`platformThumbnails: [{ platform, thumbnailUrl?, thumbnailTimestampMs? }]`)
