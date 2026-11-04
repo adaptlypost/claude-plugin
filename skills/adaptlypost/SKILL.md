@@ -3,14 +3,13 @@ name: adaptlypost
 description: >
   Draft, schedule, publish and review social media posts on the Instagram, TikTok, YouTube, X (Twitter),
   LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress accounts
-  connected to the user's AdaptlyPost workspaces, and read their analytics, all through the AdaptlyPost MCP server's
-  tools. Also covers RSS feeds that post new articles, client connect links, removing accounts and webhooks. Use this skill
-  WHENEVER the user wants to write or schedule a post, publish now, plan a content calendar, bulk schedule
-  a batch, set up a recurring post, attach an image, video or PDF, check whether a post went out, retry a
-  failed network, move or cancel a scheduled post, switch between workspaces or clients, write or rewrite a
-  caption with AI, generate an image for a post, or asks how posts, followers, views or engagement are doing. Trigger it even for short asks like "post this", "schedule it
-  for Tuesday 9am", "what's queued this week", "why did the Instagram one fail" or "what was our best post
-  last month".
+  connected to the user's AdaptlyPost workspaces, and read their analytics, through the AdaptlyPost MCP tools.
+  Also covers RSS feeds, client connect links, removing accounts and webhooks. Use it WHENEVER the user wants
+  to write or schedule a post, publish now, plan a content calendar, bulk schedule, set up a recurring post,
+  attach an image, video or PDF, check whether a post went out, retry a failed network, move or cancel a
+  scheduled post, switch workspaces or clients, write a caption or generate an image with AI, or asks how
+  posts, followers, views or engagement are doing. Trigger it for short asks too: "post this", "schedule it
+  for Tuesday 9am", "what's queued this week", "why did the Instagram one fail".
 last-updated: 2026-11-02
 ---
 
