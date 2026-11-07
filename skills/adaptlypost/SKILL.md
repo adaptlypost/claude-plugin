@@ -189,8 +189,9 @@ If the user already approved a new post word for word, you can call `create_post
 - **AI labels**: `instagramConfigs.aiGenerated` shows Instagram's "AI info" label;
   `youtubeConfigs.aiGenerated` shows YouTube's "Altered or synthetic content" label;
   `tiktokConfigs.aiGenerated` labels TikTok videos; `facebookConfigs.aiGenerated` shows Facebook's "AI info"
-  label, only on a `VIDEO` post with `postType` `REEL` or `STORY` (a `shareToStory` story from a video reel
-  carries it too), and anything else is refused with 400. Set them when the user made the media with AI.
+  label on every `VIDEO` post, whatever its `postType` (Facebook publishes every video as a reel, and a video
+  story carries the label too), and photos, carousels and text posts are refused with 400. Set them when the
+  user made the media with AI.
 - **Instagram trial reels**: `instagramConfigs.trialGraduation` (`MANUAL` or `SS_PERFORMANCE`) works only for
   a single video posted as a reel or feed video, on an account Instagram has enabled for trial reels.
 - **LinkedIn documents** (PDF, PPT, PPTX, DOC, DOCX): `contentType: DOCUMENT`, exactly one file in
