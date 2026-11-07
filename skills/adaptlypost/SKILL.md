@@ -10,7 +10,7 @@ description: >
   scheduled post, switch workspaces or clients, write a caption or generate an image with AI, or asks how
   posts, followers, views or engagement are doing. Trigger it for short asks too: "post this", "schedule it
   for Tuesday 9am", "what's queued this week", "why did the Instagram one fail".
-last-updated: 2026-11-02
+last-updated: 2026-11-07
 ---
 
 # AdaptlyPost
@@ -188,7 +188,9 @@ If the user already approved a new post word for word, you can call `create_post
   A private or unknown account is dropped and listed in `instagramUntaggedUsernames` in `get_post`.
 - **AI labels**: `instagramConfigs.aiGenerated` shows Instagram's "AI info" label;
   `youtubeConfigs.aiGenerated` shows YouTube's "Altered or synthetic content" label;
-  `tiktokConfigs.aiGenerated` labels TikTok videos. Set them when the user made the media with AI.
+  `tiktokConfigs.aiGenerated` labels TikTok videos; `facebookConfigs.aiGenerated` shows Facebook's "AI info"
+  label, only on a `VIDEO` post with `postType` `REEL` or `STORY` (a `shareToStory` story from a video reel
+  carries it too), and anything else is refused with 400. Set them when the user made the media with AI.
 - **Instagram trial reels**: `instagramConfigs.trialGraduation` (`MANUAL` or `SS_PERFORMANCE`) works only for
   a single video posted as a reel or feed video, on an account Instagram has enabled for trial reels.
 - **LinkedIn documents** (PDF, PPT, PPTX, DOC, DOCX): `contentType: DOCUMENT`, exactly one file in
