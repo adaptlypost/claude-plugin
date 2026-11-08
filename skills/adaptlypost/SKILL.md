@@ -4,14 +4,12 @@ description: >
   Draft, schedule, publish and review social media posts on the Instagram, TikTok, YouTube, X (Twitter),
   LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress accounts
   connected to the user's AdaptlyPost workspaces, and read their analytics, through the AdaptlyPost MCP tools.
-  Also covers the inbox (reading and answering comments, mentions, direct messages and Google reviews), RSS
-  feeds, client connect links, removing accounts and webhooks. Use it WHENEVER the user wants
-  to write or schedule a post, publish now, plan a content calendar, bulk schedule, set up a recurring post,
-  attach an image, video or PDF, check whether a post went out, retry a failed network, move or cancel a
-  scheduled post, switch workspaces or clients, write a caption or generate an image with AI, or asks how
-  posts, followers, views or engagement are doing, or wants to see or answer comments, mentions, DMs or
-  reviews. Trigger it for short asks too: "post this", "schedule it for Tuesday 9am", "what's queued this
-  week", "why did the Instagram one fail", "any new comments?", "reply to that review".
+  Also covers the inbox (comments, mentions, direct messages and Google reviews), RSS feeds, connect links,
+  removing accounts and webhooks. Use it WHENEVER the user wants to write or schedule a post, publish now,
+  bulk schedule, set up a recurring post, attach media, check whether a post went out, retry a failed network,
+  move or cancel a scheduled post, switch workspaces, write a caption or generate an image with AI, asks how
+  posts are doing, or wants to see or answer comments, mentions, DMs or reviews. Trigger it for short asks
+  too: "post this", "schedule it for Tuesday 9am", "any new comments?", "reply to that review".
 last-updated: 2026-11-08
 ---
 
