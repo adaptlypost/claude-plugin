@@ -1,0 +1,21 @@
+skills/adaptlypost/SKILL.md
+  s_3dffc99ad09907::t_f58b3b07e16c1c 186-192,302-306
+skills/adaptlypost/references/recurring.md
+  s_3dffc99ad09907::t_48c7eace0bf718 38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0320254531b862b9ca836688ae1e3b37852d3eb6",
+  "prompts": {},
+  "sessions": {
+    "s_3dffc99ad09907": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a95fc4d1-66bb-4939-abc1-50f60a62b0e6",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Taras Shynkarenko <taras.shinkarenko@gmail.com>"
+    }
+  }
+}
