@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "adaptlypost",
-  "version": "1.13.0",
-  "description": "Post and schedule to Instagram, TikTok, YouTube, X, LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress from your AI agent, and read post analytics.",
+  "version": "1.14.0",
+  "description": "Post and schedule to Instagram, TikTok, YouTube, X, LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress from your AI agent, answer comments, mentions, messages and reviews, and read post analytics.",
   "author": {
     "name": "AdaptlyPost",
     "url": "https://adaptlypost.com"

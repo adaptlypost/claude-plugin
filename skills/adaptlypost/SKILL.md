@@ -4,13 +4,15 @@ description: >
   Draft, schedule, publish and review social media posts on the Instagram, TikTok, YouTube, X (Twitter),
   LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress accounts
   connected to the user's AdaptlyPost workspaces, and read their analytics, through the AdaptlyPost MCP tools.
-  Also covers RSS feeds, client connect links, removing accounts and webhooks. Use it WHENEVER the user wants
+  Also covers the inbox (reading and answering comments, mentions, direct messages and Google reviews), RSS
+  feeds, client connect links, removing accounts and webhooks. Use it WHENEVER the user wants
   to write or schedule a post, publish now, plan a content calendar, bulk schedule, set up a recurring post,
   attach an image, video or PDF, check whether a post went out, retry a failed network, move or cancel a
   scheduled post, switch workspaces or clients, write a caption or generate an image with AI, or asks how
-  posts, followers, views or engagement are doing. Trigger it for short asks too: "post this", "schedule it
-  for Tuesday 9am", "what's queued this week", "why did the Instagram one fail".
-last-updated: 2026-11-07
+  posts, followers, views or engagement are doing, or wants to see or answer comments, mentions, DMs or
+  reviews. Trigger it for short asks too: "post this", "schedule it for Tuesday 9am", "what's queued this
+  week", "why did the Instagram one fail", "any new comments?", "reply to that review".
+last-updated: 2026-11-08
 ---
 
 # AdaptlyPost
@@ -40,6 +42,7 @@ If more than 30 days have passed since `last-updated`, tell the user the skill m
 | Recurring posts | `create_post` with `recurrence`, then `list_recurring_posts`, `get_recurring_post`, `pause_recurring_post`, `resume_recurring_post`, `delete_recurring_post` |
 | RSS feeds | `preview_rss_feed`, `create_rss_feed`, `list_rss_feeds`, `get_rss_feed`, `update_rss_feed`, `list_rss_feed_items`, `check_rss_feed`, `pause_rss_feed`, `resume_rss_feed`, `delete_rss_feed` |
 | Analytics | `get_analytics_overview`, `get_analytics_timeseries`, `get_platform_breakdown`, `list_post_analytics`, `list_top_posts`, `list_discovered_posts`, `get_analytics_sync_status`, `trigger_analytics_sync` |
+| Inbox | `get_inbox_summary`, `refresh_inbox`; comments: `list_inbox_comments`, `get_inbox_comment`, `reply_to_inbox_comment`, `hide_inbox_comment`, `unhide_inbox_comment`, `like_inbox_comment`, `unlike_inbox_comment`, `delete_inbox_comment`, `update_inbox_comments_status`; mentions: `list_inbox_mentions`, `reply_to_inbox_mention`, `update_inbox_mentions_status`; messages: `list_inbox_conversations`, `get_inbox_conversation`, `send_inbox_message`, `update_inbox_conversations_status`; reviews: `list_inbox_reviews`, `reply_to_inbox_review`, `delete_inbox_review_reply`, `update_inbox_reviews_status` |
 | Webhooks | `list_webhooks`, `get_webhook`, `create_webhook`, `update_webhook`, `test_webhook`, `delete_webhook` |
 | AI captions and images | `generate_caption`, `refine_caption`, `generate_image`, `get_image_job` |
 
@@ -79,9 +82,9 @@ Every call acts as the signed-in member, with the role they hold in that workspa
 | Role | Can | Cannot |
 |------|-----|--------|
 | Admin | Everything, including removing accounts, checking Facebook pages and connect links | |
-| Editor | Create, schedule, publish, retry, bulk schedule, delete, edit any post, RSS feeds in any mode, trigger an analytics sync, manage webhooks | Remove accounts, check pages, connect links |
-| Contributor | Create and edit its own drafts, draft-mode RSS feeds, upload media, generate captions and images, read posts and analytics | Schedule, publish, retry, bulk schedule, delete non-drafts, trigger an analytics sync, webhooks, touch other members' posts or feeds |
-| Viewer | Read accounts, posts, RSS feeds, webhooks and analytics | Any write, AI generation |
+| Editor | Create, schedule, publish, retry, bulk schedule, delete, edit any post, RSS feeds in any mode, trigger an analytics sync, manage webhooks, answer the inbox | Remove accounts, check pages, connect links |
+| Contributor | Create and edit its own drafts, draft-mode RSS feeds, upload media, generate captions and images, read posts, analytics and the inbox | Schedule, publish, retry, bulk schedule, delete non-drafts, trigger an analytics sync, webhooks, touch other members' posts or feeds, reply to or change anything in the inbox |
+| Viewer | Read accounts, posts, RSS feeds, webhooks, analytics and the inbox | Any write, AI generation |
 
 | Response | Meaning | What to do |
 |----------|---------|------------|
@@ -90,6 +93,7 @@ Every call acts as the signed-in member, with the role they hold in that workspa
 | 403 `subscription_required` | The organization's plan does not include API access or has lapsed. Every tool fails the same way | Tell the user to renew the plan. Retrying will not help |
 | 401 `oauth_account_not_found` | The user signed in with an email that has no AdaptlyPost account | Relay the message, which names that email. Ask them to run `/mcp`, clear the `adaptlypost` sign-in and sign in with the email they use on AdaptlyPost |
 | 403 `workspace_access_denied` | Wrong `workspaceId` | Pick one from `list_workspaces` |
+| 403 `inbox_reconnect_required` | The account lacks the platform permission for that inbox channel or action, or its token expired | Tell the user to reconnect the account in AdaptlyPost. Do not retry |
 | 429 | Too many calls in a short time | Wait the number of seconds the error gives (`Retry-After`) before the next call. Do not loop |
 
 ## The core loop
@@ -139,6 +143,10 @@ If the user already approved a new post word for word, you can call `create_post
   proxy) goes through `open_upload_widget`, never a public repo, gist or file-sharing link. See
   [references/media.md](references/media.md).
 - **Confirm deletes and retries** for each post id. A retry republishes immediately.
+- **Confirm every inbox reply and message.** Show the exact text, the account it goes out from and the
+  comment, mention, message or review it answers, and wait for a yes. Confirm hiding or deleting a comment
+  and deleting a review reply the same way. Never send inbox replies from an unattended run. See
+  [references/inbox.md](references/inbox.md).
 - **Confirm recurring posts like any other.** Show the frequency, the first date and when it ends. A
   recurring post keeps publishing with nobody watching, so confirm before resuming one too.
 - **Connect links are secrets.** Create one with `create_connect_link` only when the user asks, give the
@@ -246,7 +254,7 @@ Each of these is a list with one entry per platform, and works on `create_post`,
 the stored ones.
 
 - **First comments** (`firstComments: [{ platform, text }]`) go up under the post from the same account
-  shortly after it publishes. LinkedIn (1,250 characters), X (280), Bluesky (300), Mastodon (500),
+  shortly after it publishes. LinkedIn (1,250 characters), X (280), Threads (500), Bluesky (300), Mastodon (500),
   YouTube (10,000), Facebook (8,000) and Instagram (2,200) only, not on stories or private or
   made-for-kids YouTube videos. A Facebook Page or Instagram account connected before first comments came
   to them needs one reconnect. A failed comment never fails the post: read `firstCommentStatus` and
@@ -274,7 +282,8 @@ Platform names are uppercase: `INSTAGRAM`, `TIKTOK`, `YOUTUBE`, `TWITTER` (X), `
 
 ## Changing the plan
 
-- **Edit** a DRAFT or SCHEDULED post with `update_post`; other statuses cannot be edited. Omitted fields
+- **Edit** a DRAFT or SCHEDULED post with `update_post`. A post that failed on every platform can be edited
+  too and becomes a draft again, ready for `publish_draft`; a post that published anywhere cannot be edited. Omitted fields
   keep their values. Sending `platforms` replaces every target, so resend every connection array and
   config you want to keep. `mediaUrls` and `mediaAltTexts` only take effect together with `platforms`.
 - **Move** a scheduled post with `update_post` and a new `scheduledAt`. Moving it more than a minute into
@@ -314,9 +323,13 @@ paused feed's `pauseReason` says why; fix that before `resume_rss_feed`.
 
 ## Webhooks
 
-`create_webhook` registers a URL that receives every event (`post.published`, `post.partially_failed`,
-`post.failed`, `post.scheduled`, `account.unauthorized`, `image.completed`, `image.failed`), signed with
-the secret the response returns once. `test_webhook` sends a signed test event. An endpoint is turned off
+`create_webhook` registers a URL that receives the default events (`post.published`,
+`post.partially_failed`, `post.failed`, `post.scheduled`, `account.unauthorized`, `image.completed`,
+`image.failed`), signed with the secret the response returns once. Pass `events` to choose: the inbox
+events `comment.created`, `comment.replied`, `mention.created`, `message.received` and `review.created`
+reach only a webhook that lists them, and a non-empty list means only those events, so list the post
+events too when the user still wants them. `update_webhook` changes `events`; `[]` goes back to the
+default set. Inbox events arrive within about 10 minutes. `test_webhook` sends a signed test event. An endpoint is turned off
 after 20 failed deliveries in a row; `update_webhook` with `active: true` turns it back on.
 
 ## Times
@@ -345,6 +358,14 @@ giving text. For a caption the user already wrote, just use their text.
   admin for a larger AI credit allowance. Do not retry.
 - Generate only what the user asked for. Offer one or two variations, not a loop of them.
 - All four need the `ai.generate` permission: Admin, Editor and Contributor have it, Viewer does not.
+
+## Inbox
+
+The inbox holds comments on the account's posts (Facebook, Instagram, Threads, YouTube, Bluesky, Mastodon,
+LinkedIn), mentions (Facebook, Instagram, Threads, Bluesky, Mastodon), direct messages (Facebook,
+Instagram, Bluesky, Mastodon) and Google Business Profile reviews. TikTok and X have none. Start with
+`get_inbox_summary`, read the item before answering it, and confirm every reply. Read
+[references/inbox.md](references/inbox.md) before replying, messaging, hiding, liking or deleting.
 
 ## Analytics
 

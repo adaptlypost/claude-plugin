@@ -29,8 +29,8 @@ narrow it to some accounts. `list_post_analytics` sorts by `VIEWS`, `LIKES`, `CO
   from then on while it stays connected. Dates before `historyHorizonAt` have no data, which is not the
   same as zero activity. A post's numbers refresh for 180 days after it is published, then hold.
 - **Freshness.** Metrics refresh every few hours; `lastSyncedAt` says when. `trigger_analytics_sync` is
-  allowed once per workspace every 4 hours. Inside the cooldown it returns `queued: false` with
-  `cooldownSecondsRemaining`; do not retry in a loop. Poll `get_analytics_sync_status` until
+  allowed once per workspace every 15 minutes, and skips a YouTube channel read in the last 12 hours.
+  Inside the cooldown it returns `queued: false` with `cooldownSecondsRemaining`; do not retry in a loop. Poll `get_analytics_sync_status` until
   `syncInProgress` is false, then read the metrics again.
 - **Networks.** Facebook, Instagram, Threads, TikTok, Pinterest, Bluesky, YouTube, X, LinkedIn and Google
   Business Profile report analytics; Google Business Profile reports only how often each location was seen,
@@ -38,6 +38,10 @@ narrow it to some accounts. `list_post_analytics` sorts by `VIEWS`, `LIKES`, `CO
   `get_platform_breakdown` has no data for the window.
 - **Partial metrics.** `partialMetrics` names metrics some selected network cannot report, and a metric no
   selected network reports is `null`. Compare networks only on metrics both list in `supportedMetrics`.
+- **Account-wide activity.** `accountActivityConnectionIds` in the overview and in each breakdown row lists
+  accounts, such as LinkedIn personal profiles and Google Business locations, counted by their account-wide
+  activity on each day of the window instead of the posts published in it. They have no rows in
+  `list_post_analytics`, so say so when the user asks for their top posts.
 - **Reconnect.** When `needsAnalyticsReconnect` is true for an account, it was connected before analytics
   permissions existed and returns nothing until the user reconnects it in AdaptlyPost. Tell them once; do
   not keep querying.
