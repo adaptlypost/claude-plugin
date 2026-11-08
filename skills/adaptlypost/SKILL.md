@@ -183,6 +183,13 @@ If the user already approved a new post word for word, you can call `create_post
   `youtubeConfigs`. When the video is not in English, set `youtubeConfigs.defaultAudioLanguage` to the
   spoken language as a tag such as `pt-BR` or `es-419`, so YouTube does not treat it as English; `null`
   clears a saved value. It does not turn off YouTube's automatic dubbing.
+- **YouTube scheduled on YouTube**: `youtubeConfigs.scheduleOnYouTube: true` uploads the video as soon as
+  the post is scheduled, as a private video that YouTube itself makes public at `scheduledAt`. Offer it when
+  the user wants to run a Test & Compare (thumbnail or title A/B test) in YouTube Studio before launch.
+  `privacyStatus` has to be `public` or left out (else 400 `YOUTUBE_SCHEDULE_REQUIRES_PUBLIC`), and a
+  recurring post cannot use it (400 `YOUTUBE_SCHEDULE_NOT_RECURRING`). When `scheduledAt` is under 15
+  minutes away the video simply uploads at `scheduledAt`. `get_post` shows `youtubeScheduleOnYouTube` on
+  the platform, and `youtubeScheduledVideoId` once the video is on YouTube.
 - **Instagram collaborators**: `instagramConfigs.collaborators`, up to 3 usernames, on feed images,
   carousels and reels (not stories or trial reels). Each one has to accept the invite in Instagram.
 - **Instagram Reel audio**: find a track with `search_instagram_audio` (leave out `searchQuery` for
@@ -292,6 +299,11 @@ Platform names are uppercase: `INSTAGRAM`, `TIKTOK`, `YOUTUBE`, `TWITTER` (X), `
 - **Delete** with `delete_post` only when the user wants the post gone. Deleting a published post removes
   AdaptlyPost's record only; the live posts stay on the networks. A post that is PUBLISHING cannot be
   deleted (409); wait until `list_post_results` settles.
+- **Scheduled on YouTube**: once a platform has `youtubeScheduledVideoId` and has not published yet,
+  `update_post`, `unschedule_post` and `publish_draft` answer 409 `SCHEDULED_ON_YOUTUBE`. To change the
+  post, delete it and schedule it again; deleting it before `scheduledAt` removes the YouTube video too. A
+  502 `SCHEDULED_VIDEO_DELETE_FAILED` means YouTube refused and the post is still there, so try again
+  (have the user reconnect the channel first if it was disconnected).
 - **Bulk**: `bulk_schedule_posts` takes up to 100 posts that share the same platforms, accounts and
   configs; an item can carry its own `tiktokConfigs`, `instagramConfigs`, `facebookConfigs`,
   `youtubeConfigs`, `pinterestConfigs`, `googleBusinessConfigs`, `tumblrConfigs` or `wordpressConfigs` to replace the shared

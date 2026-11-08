@@ -35,7 +35,7 @@ A recurring post (a series) publishes the same content on a schedule. Create it 
 - `endsOn` and `maxOccurrences` cannot be combined. With neither, the series repeats until paused or
   deleted.
 - The call fails with `saveAsDraft: true`, with a past or missing `scheduledAt`, with both end fields, with
-  an `endsOn` before the first post, or with `TIKTOK` in `platforms`.
+  an `endsOn` before the first post, with `TIKTOK` in `platforms`, or with YouTube's `scheduleOnYouTube`.
 - X and LinkedIn reject identical text. Put spintax such as `{Hi|Hello}` in the text so each post differs.
 - Before creating it, show the content, accounts, frequency, first date and time with timezone, and when it
   ends. Get an explicit "yes".
