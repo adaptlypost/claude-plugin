@@ -251,8 +251,10 @@ the stored ones.
   made-for-kids YouTube videos. A Facebook Page or Instagram account connected before first comments came
   to them needs one reconnect. A failed comment never fails the post: read `firstCommentStatus` and
   `firstCommentError` in `get_post`.
-- **Threads of replies** (`threadReplies: [{ platform, texts }]`) turn the post into a thread on X, Bluesky
-  and Mastodon, up to 25 replies, each within that network's post length. A network cannot have
+- **Threads of replies** (`threadReplies: [{ platform, texts, mediaUrls? }]`) turn the post into a thread on X,
+  Threads, Bluesky and Mastodon, up to 25 replies, each within that network's post length. `mediaUrls` gives
+  each reply up to 4 JPEG, PNG, GIF or WEBP images from `upload_media`, one list per reply in `texts` order
+  (`[]` for a reply without images); a reply with images may leave its text empty. A network cannot have
   both a thread and a first comment. A failed thread never fails the post: read `threadStatus` and
   `threadError` in `get_post`.
 - **Thumbnail per network** (`platformThumbnails: [{ platform, thumbnailUrl?, thumbnailTimestampMs? }]`)
