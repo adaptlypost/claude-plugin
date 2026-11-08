@@ -1,10 +1,28 @@
 # AdaptlyPost plugin for Claude Code and Hermes Agent
 
-[![smithery badge](https://smithery.ai/badge/tarasshyn/adaptlypost)](https://smithery.ai/servers/tarasshyn/adaptlypost)
+Draft, schedule, publish and measure posts on Instagram, TikTok, YouTube, X (Twitter), LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress, all 14 platforms AdaptlyPost supports, from Claude Code or Hermes Agent.
 
-Post and schedule to **14 social media platforms** from Claude Code: Instagram, TikTok, YouTube, X (Twitter), LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress.
+## What this repo is
+
+This repo is the AdaptlyPost plugin for Claude Code and Hermes Agent, and nothing else. Both read the same package: `.claude-plugin/plugin.json`, `.mcp.json` and `.claude-plugin/marketplace.json` for Claude Code, `plugin.json` and `mcp.json` for Hermes, and one skill in [`skills/adaptlypost/`](./skills/adaptlypost). The plugin connects to the hosted MCP server at `https://mcp.adaptlypost.com/mcp`, signs in with OAuth and never asks for an API key. Its skill only calls MCP tools and ships no script, because the Claude plugin directory and the Hermes catalog both review for that.
+
+Everything else lives in [adaptlypost/agent](https://github.com/adaptlypost/agent): the agent skill for `npx skills add` (a CLI script with an API key), the source of the MCP server, and the Gemini CLI extension.
+
+| You use | Install | Sign-in |
+| --- | --- | --- |
+| Claude Code | `/plugin install adaptlypost --marketplace adaptlypost/claude-plugin` | OAuth |
+| Hermes Agent | `hermes plugins install adaptlypost` | OAuth |
+| Gemini CLI | `gemini extensions install https://github.com/adaptlypost/agent` | OAuth |
+| Claude Desktop, Cursor, ChatGPT or any MCP client | Add `https://mcp.adaptlypost.com/mcp` as a remote server | OAuth, or an API key header |
+| Cursor, Codex, Windsurf, Claude Code or any agent with skills | `npx skills add adaptlypost/agent` | API key |
 
 ## Install in Claude Code
+
+```
+/plugin install adaptlypost --marketplace adaptlypost/claude-plugin
+```
+
+On Claude Code older than 2.1.275, add the marketplace first:
 
 ```
 /plugin marketplace add adaptlypost/claude-plugin
@@ -68,48 +86,32 @@ Put `ADAPTLYPOST_API_KEY=...` in `~/.hermes/.env`. The key works like a password
 
 ## What it does
 
-Once installed, Claude can:
+Once installed, Claude or Hermes can:
 
-- **Post** to 14 platforms simultaneously with per-platform caption overrides
-- **Schedule** posts for any future time
-- **Bulk schedule** up to 100 posts at once
-- **Check results** per-platform with success/failure and error details
-- **Retry** just the failed platforms
-- **Draft, then publish**: save drafts, review, publish later
-- **Repeat** a post daily, weekly, monthly or yearly, then pause, resume or stop the series
-- **Read analytics**: views, likes, comments, followers and engagement per window, per platform and per post
-- **Write captions and generate images** with AdaptlyPost AI, paid from your AI credits
+- Post to any of the 14 platforms in one call, with per-platform captions, first comments, thumbnails and image shapes
+- Check a post before creating it, and get every problem back at once
+- Schedule for any future time, or bulk schedule up to 100 posts
+- See per-platform results with error details, and retry only the platforms that failed
+- Save drafts and publish them later
+- Repeat a post daily, weekly, monthly or yearly, then pause, resume or stop the series
+- Turn new RSS feed items into drafts or posts
+- Read analytics: views, likes, comments, followers and engagement per window, per platform and per post
+- Manage webhooks and client connect links, and check or remove connected accounts
+- Write captions and generate images with AdaptlyPost AI, paid from your AI credits
+- Work in any workspace your sign-in reaches, with your own role there
 
 ## Example
 
 ```
 You: Schedule a LinkedIn post for tomorrow at 9am about our feature launch.
-Claude: Done. Post scheduled for tomorrow at 9:00 AM on your LinkedIn account.
+Agent: Done. Post scheduled for tomorrow at 9:00 AM on your LinkedIn account.
 ```
-
-## Alternative: MCP
-
-For Claude Desktop, Cursor, or other MCP-compatible clients:
-
-```json
-{
-  "mcpServers": {
-    "adaptlypost": {
-      "type": "http",
-      "url": "https://mcp.adaptlypost.com/mcp",
-      "headers": { "Authorization": "Bearer adaptly_your_key" }
-    }
-  }
-}
-```
-
-[MCP setup docs →](https://adaptlypost.com/features/agents)
 
 ## Links
 
 - Product: [adaptlypost.com](https://adaptlypost.com)
-- AI Agents: [adaptlypost.com/features/agents](https://adaptlypost.com/features/agents)
-- API Tokens: [adaptlypost.com/api-tokens](https://adaptlypost.com/api-tokens)
+- AI agents: [adaptlypost.com/features/agents](https://adaptlypost.com/features/agents)
+- Skill, MCP server and Gemini extension: [adaptlypost/agent](https://github.com/adaptlypost/agent)
 - Privacy policy: [adaptlypost.com/privacy](https://adaptlypost.com/privacy)
 
 ## License
