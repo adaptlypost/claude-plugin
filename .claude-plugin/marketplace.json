@@ -6,14 +6,14 @@
   },
   "metadata": {
     "description": "Post and schedule to Instagram, TikTok, YouTube, X, LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress from your AI agent, and read post analytics.",
-    "version": "1.10.0"
+    "version": "1.11.0"
   },
   "plugins": [
     {
       "name": "adaptlypost",
       "source": "./",
       "description": "Post and schedule to Instagram, TikTok, YouTube, X, LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress from your AI agent, and read post analytics.",
-      "version": "1.10.0",
+      "version": "1.11.0",
       "author": {
         "name": "AdaptlyPost",
         "url": "https://adaptlypost.com"

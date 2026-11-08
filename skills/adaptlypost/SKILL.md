@@ -200,6 +200,10 @@ If the user already approved a new post word for word, you can call `create_post
 - **LinkedIn reshares**: `linkedinConfigs.reshareOf` takes a `urn:li:share:` or `urn:li:ugcPost:` URN (the
   `platformPostId` of an earlier LinkedIn post) or a `linkedin.com/feed/update/<urn>` link, and posts the
   text as commentary on it. `urn:li:activity:` links fail. Not available in bulk.
+- **X quote posts**: `twitterConfigs.quoteOf` takes an `x.com/<handle>/status/<id>` link or the post's
+  numeric id (the `platformPostId` of an earlier X post) and posts the text as a quote of it. X only lets an
+  account quote its own posts or posts that mention it, so a link naming another handle fails. Needs text,
+  drops media on that account, and costs the same as any X post. Not available in bulk.
 - **Facebook text backgrounds**: `facebookConfigs.textFormatPresetId` (for example `106018623298955`, solid
   purple) on a `TEXT` post with no media and at most 130 characters. If Facebook refuses it, the post goes
   out as plain text.
