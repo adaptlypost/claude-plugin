@@ -1,0 +1,23 @@
+.claude-plugin/marketplace.json
+  s_c160ab201e73bd::t_d3755dbb9cff5a 9,16
+.claude-plugin/plugin.json
+  s_c160ab201e73bd::t_0be0aa7640cfe0 4
+plugin.json
+  s_c160ab201e73bd::t_8e27acee18886b 4
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "df197fd52ff81ea32b1995ad60d105647b7df1df",
+  "prompts": {},
+  "sessions": {
+    "s_c160ab201e73bd": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "33b3449d-905c-4204-9471-7f42bb33a1c3",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Taras Shynkarenko <taras.shinkarenko@gmail.com>"
+    }
+  }
+}
