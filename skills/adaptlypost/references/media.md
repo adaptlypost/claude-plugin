@@ -75,6 +75,23 @@ published post, which may be the platform's own expiring link.
 Networks have their own limits on top of these (aspect ratios, video length, carousel counts). When a
 network rejects a file, `list_post_results` says why; read the message before changing anything.
 
+## Different media for one network
+
+When the post media does not fit one network (a video too long for TikTok, a carousel with more images
+than X takes), give that network its own media with `platformMedia` instead of leaving it out of the post:
+
+```json
+"platformMedia": [
+  { "platform": "TIKTOK", "mediaUrls": ["<publicUrl of the short cut>"] },
+  { "platform": "TWITTER", "mediaUrls": ["<url 1>", "<url 2>", "<url 3>", "<url 4>"], "mediaAltTexts": ["...", "...", "...", "..."] }
+]
+```
+
+Upload the files first and use their `publicUrl`s; data URIs are refused. Networks without an entry use the
+post `mediaUrls`. The entry must match the post `contentType` (one video for `VIDEO`, one image for `IMAGE`,
+one document for `DOCUMENT`, two or more items for `CAROUSEL`), and each entry is checked against its own
+network's limits only. See SKILL.md for the update rules.
+
 ## Alt text
 
 Pass `mediaAltTexts` in the same order as `mediaUrls`, one per image, up to 1,000 characters, `""` to skip
@@ -86,4 +103,5 @@ TikTok, YouTube, Google Business Profile and videos ignore it.
 For video posts, `thumbnailUrl` sets a custom thumbnail image and `thumbnailTimestampMs` picks a frame from
 the video instead. Both work on YouTube, Facebook, Instagram, LinkedIn, Pinterest, Telegram and TikTok; when
 both are sent the image wins everywhere except TikTok, which takes only a frame. To give one network a different
-thumbnail, use `platformThumbnails` (see SKILL.md).
+thumbnail, use `platformThumbnails` (see SKILL.md). A network with its own media from `platformMedia` does
+not use the post-level thumbnail, so give it one through `platformThumbnails`.

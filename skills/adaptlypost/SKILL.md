@@ -248,7 +248,8 @@ If the user already approved a new post word for word, you can call `create_post
 - **Carousels** use `contentType: CAROUSEL` with 2 or more media URLs: up to 4 on X, Bluesky and Mastodon,
   5 on Pinterest, 10 on Instagram, Facebook, Threads and Telegram, 20 on LinkedIn and WordPress, 30 on Tumblr and 35 on
   TikTok. Only Instagram
-  and Threads mix images and videos.
+  and Threads mix images and videos. Give a network with a lower limit its own items with
+  `platformMedia` (below).
 - **Alt text**: `mediaAltTexts` in the same order as `mediaUrls`, one per image. Write it for every image
   unless the user says not to.
 
@@ -277,6 +278,19 @@ the stored ones.
 - **Image shape** (`platformAspectRatios: [{ platform, aspectRatio, fit? }]`) for image and carousel
   posts on Instagram (`SQUARE`, `PORTRAIT`, `LANDSCAPE`) and TikTok (those plus `VERTICAL`). `fit` is
   `CROP` (default) or `PAD`, which keeps the whole image on a blurred background.
+- **Media per network** (`platformMedia: [{ platform, mediaUrls, mediaAltTexts? }]`) gives one network
+  different media, for when the post media does not fit it (a video too long for TikTok, a carousel with
+  more images than X takes). Networks without an entry use the post `mediaUrls`. `mediaUrls` is required
+  and non-empty, public https URLs from upload (no data URIs); `mediaAltTexts` is alt text per item in the
+  same order, up to 1,000 characters each, `""` to skip one. The entry must match the post `contentType`:
+  one video for `VIDEO`, one image for `IMAGE`, one document for `DOCUMENT`, two or more items for
+  `CAROUSEL`; `TEXT` posts take none. Each entry is checked against its own network's limits only, and the
+  post `mediaUrls` is no longer checked against that network. An entry for a network the post does not go
+  to, a data URI, a second entry for one network and media of another type are refused with 400. A network
+  with its own media does not use the post-level `thumbnailUrl` or `thumbnailTimestampMs`; give it its own
+  through `platformThumbnails`. On `update_post`, `[]` clears every override, and the list takes effect
+  even without `platforms`. `get_post` shows an override as `mediaOverrideUrls` and
+  `mediaOverrideAltTexts` on that platform.
 
 LinkedIn text can mention a company page as `@[Page Name](urn:li:organization:<id>)`, with the page name
 exactly as LinkedIn shows it.
@@ -290,7 +304,8 @@ Platform names are uppercase: `INSTAGRAM`, `TIKTOK`, `YOUTUBE`, `TWITTER` (X), `
 - **Edit** a DRAFT or SCHEDULED post with `update_post`. A post that failed on every platform can be edited
   too and becomes a draft again, ready for `publish_draft`; a post that published anywhere cannot be edited. Omitted fields
   keep their values. Sending `platforms` replaces every target, so resend every connection array and
-  config you want to keep. `mediaUrls` and `mediaAltTexts` only take effect together with `platforms`.
+  config you want to keep. `mediaUrls` and `mediaAltTexts` only take effect together with `platforms`;
+  `platformMedia` takes effect without it.
 - **Move** a scheduled post with `update_post` and a new `scheduledAt`. Moving it more than a minute into
   the past fails; use `publish_draft` with `publishNow: true` to publish now. On a draft, a new
   `scheduledAt` only changes its planned date; the post stays a draft until `publish_draft`.
@@ -307,7 +322,8 @@ Platform names are uppercase: `INSTAGRAM`, `TIKTOK`, `YOUTUBE`, `TWITTER` (X), `
 - **Bulk**: `bulk_schedule_posts` takes up to 100 posts that share the same platforms, accounts and
   configs; an item can carry its own `tiktokConfigs`, `instagramConfigs`, `facebookConfigs`,
   `youtubeConfigs`, `pinterestConfigs`, `googleBusinessConfigs`, `tumblrConfigs` or `wordpressConfigs` to replace the shared
-  ones, plus its own `firstComments`, `threadReplies`, `platformThumbnails` and `platformAspectRatios`.
+  ones, plus its own `firstComments`, `threadReplies`, `platformThumbnails`, `platformMedia` and
+  `platformAspectRatios`.
   Run `validate_bulk_posts` with the same input first and fix every item it flags. It has no draft mode,
   so show the whole batch as a table (time, network, text, media) and get one explicit "yes" first. Read
   every result row; one bad item fails alone.

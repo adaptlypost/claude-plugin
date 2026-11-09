@@ -89,6 +89,7 @@ Put `ADAPTLYPOST_API_KEY=...` in `~/.hermes/.env`. The key works like a password
 - "Schedule this announcement on LinkedIn and X for tomorrow at 9am, with a shorter version for X."
 - "Turn https://example.com/blog/launch into posts for Instagram, Threads and Bluesky and save them as drafts."
 - "Post this video as an Instagram Reel and a TikTok, with a first comment that links to our site."
+- "Post this video to YouTube, Instagram and TikTok, and use the 60-second cut for TikTok."
 - "Check this post for problems on every platform before you schedule it."
 - "Which platforms failed on yesterday's post? Retry only those."
 - "Repeat our weekly tips post every Monday at 10am."
@@ -119,7 +120,7 @@ Put `ADAPTLYPOST_API_KEY=...` in `~/.hermes/.env`. The key works like a password
 
 | Tool | What it does | Changes data |
 | --- | --- | --- |
-| `create_post` | Create a post: publish immediately, schedule, or save as draft (a draft can carry a planned date). Takes first comments, per-platform thumbnails and image shapes, Instagram and Facebook story sharing, Instagram collaborators, user tags, AI labels and Reel audio, Facebook text backgrounds and link carousels, LinkedIn reshares, X quotes of the account's own posts, threads of replies with images, Tumblr tags, WordPress titles, categories and tags, the YouTube audio language and Google Business Profile events and offers | Yes |
+| `create_post` | Create a post: publish immediately, schedule, or save as draft (a draft can carry a planned date). Takes first comments, per-platform thumbnails, image shapes and media, Instagram and Facebook story sharing, Instagram collaborators, user tags, AI labels and Reel audio, Facebook text backgrounds and link carousels, LinkedIn reshares, X quotes of the account's own posts, threads of replies with images, Tumblr tags, WordPress titles, categories and tags, the YouTube audio language and Google Business Profile events and offers | Yes |
 | `validate_post` | Dry-run `create_post` with the same input: every problem, per account, without creating anything | No |
 | `get_post` | Get full details of a single post by ID | No |
 | `list_posts` | List posts with filters by status, platform, date range | No |
@@ -264,6 +265,9 @@ The account was connected before AdaptlyPost asked for that permission, its toke
 
 **Can it upload my own photos and videos?**
 Yes. `upload_media` takes public URLs, base64 or ChatGPT attachments; `open_upload_widget` shows an upload box in ChatGPT and Claude, or gives an upload link where a box can't show.
+
+**What if my video is too long for TikTok, or X takes only 4 images?**
+Give that platform its own media with `platformMedia`, such as a shorter cut for TikTok or four of the images for X. The other platforms keep the post's media. AdaptlyPost checks each override against its own platform's limits only.
 
 **Can I use AdaptlyPost outside Claude Code and Hermes?**
 Yes. Claude Desktop, ChatGPT, Cursor, Windsurf, VS Code, Codex and Gemini CLI connect to the same server at `https://mcp.adaptlypost.com/mcp`. The setup for each is in [adaptlypost/agent](https://github.com/adaptlypost/agent#setup-by-client).
