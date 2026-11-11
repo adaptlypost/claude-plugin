@@ -155,8 +155,8 @@ If the user already approved a new post word for word, you can call `create_post
 - **RSS feeds post with nobody watching.** Confirm the feed, the accounts, `postMode` and the text before
   `create_rss_feed`, before switching a feed to `SCHEDULE` or `PUBLISH`, and before `resume_rss_feed`.
   Show `preview_rss_feed` first. `DRAFT` mode is the safe default.
-- **Webhook secrets** come back once, from `create_webhook`. Give the secret to the user to store; do not
-  write it into files.
+- **Webhook secrets** never reach you. `create_webhook` returns `secretRevealUrl`, a one-time link valid for
+  30 minutes. Give it to the user to open in their browser; do not open or fetch it yourself.
 - **No duplicate content** across several accounts on the same network, and do not flood the tools with
   repeated calls.
 
@@ -351,7 +351,7 @@ paused feed's `pauseReason` says why; fix that before `resume_rss_feed`.
 
 `create_webhook` registers a URL that receives the default events (`post.published`,
 `post.partially_failed`, `post.failed`, `post.scheduled`, `account.unauthorized`, `image.completed`,
-`image.failed`), signed with the secret the response returns once. Pass `events` to choose: the inbox
+`image.failed`), signed with a secret the user collects once from the `secretRevealUrl` the response returns. Pass `events` to choose: the inbox
 events `comment.created`, `comment.replied`, `mention.created`, `message.received` and `review.created`
 reach only a webhook that lists them, and a non-empty list means only those events, so list the post
 events too when the user still wants them. `update_webhook` changes `events`; `[]` goes back to the
