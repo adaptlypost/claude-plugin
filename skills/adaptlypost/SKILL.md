@@ -245,8 +245,8 @@ If the user already approved a new post word for word, you can call `create_post
 - **X links**: links in X text are broken on purpose (`example.com` becomes `example. com`) because X
   charges far more for posts with links. `twitterKeepLinks: true` keeps them clickable only on AppSumo
   lifetime deals, for 20 credits instead of 2; any other plan gets a 400. Don't set it unless asked.
-- **Carousels** use `contentType: CAROUSEL` with 2 or more media URLs: up to 4 on X, Bluesky and Mastodon,
-  5 on Pinterest, 10 on Instagram, Facebook, Threads and Telegram, 20 on LinkedIn and WordPress, 30 on Tumblr and 35 on
+- **Carousels** use `contentType: CAROUSEL` with 2 or more media URLs: up to 4 on Bluesky and Mastodon,
+  5 on Pinterest, 10 on Instagram, Facebook, Threads and Telegram, 20 on X, LinkedIn and WordPress, 30 on Tumblr and 35 on
   TikTok. Only Instagram
   and Threads mix images and videos. Give a network with a lower limit its own items with
   `platformMedia` (below).
