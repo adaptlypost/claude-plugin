@@ -1,0 +1,25 @@
+.claude-plugin/marketplace.json
+  s_cf82ba64fdcd75::t_098e47fb959294 9,16
+.claude-plugin/plugin.json
+  s_cf82ba64fdcd75::t_55c6d9d9883973 4
+plugin.json
+  s_cf82ba64fdcd75::t_d8c404fed7dc18 4
+skills/adaptlypost/SKILL.md
+  s_cf82ba64fdcd75::t_67072663d11cda 248-249
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "4346c6d726e3e88834697271db581b749e95177e",
+  "prompts": {},
+  "sessions": {
+    "s_cf82ba64fdcd75": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "badcde7c-47cb-4a38-8043-549adbafe864",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Taras Shynkarenko <taras.shinkarenko@gmail.com>"
+    }
+  }
+}
