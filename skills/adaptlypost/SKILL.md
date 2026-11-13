@@ -225,14 +225,20 @@ If the user already approved a new post word for word, you can call `create_post
   shows the card text only for links to a website the Page owns. `GRID` is the plain photo grid.
 - **Tumblr** posts go in `tumblrConnectionIds`; `tumblrConfigs` adds up to 30 `tags`, a `title` and a
   `sourceUrl`.
-- **WordPress** sites go in `wordpressConnectionIds`. The text becomes the body of a published blog post,
-  up to 100,000 characters: blank lines start paragraphs and bare links become clickable. Up to 20
+- **WordPress** sites go in `wordpressConnectionIds`. The text becomes the body of a blog post, up to
+  100,000 characters: blank lines start paragraphs and bare links become clickable. Up to 20
   images (20 MB each) or one MP4 or MOV video (500 MB); the first image is the featured image and the rest
   follow the text. `wordpressConfigs` sets `title` (without one, the first line of the text cut to 100
-  characters), `excerpt`, `categoryIds` and `tags`. When the user names categories, call
+  characters), `excerpt`, `categoryIds`, `tags` and `status`. When the user names categories, call
   `list_wordpress_categories` with the site's account id and pass the matching ids; without them WordPress
   uses the site's default category. A tag the site lacks is created when the WordPress user may manage
-  tags. No first comments, threads or analytics.
+  tags. `status` decides what the site holds at the post's time: `PUBLISH` (the default) publishes it live,
+  `DRAFT` leaves a WordPress draft the user finishes and publishes or schedules in WordPress, and `PENDING`
+  submits it for review. Use `DRAFT` when the user wants to edit the post in WordPress first. It is not
+  `saveAsDraft`: the post still has to be published or scheduled in AdaptlyPost to reach the site. For
+  `DRAFT` and `PENDING` the platform's `postUrl` opens the post in the WordPress editor, and AdaptlyPost
+  marks the platform published once WordPress holds it in that status. No first comments, threads or
+  analytics.
 - **Telegram** channels and groups go in `telegramConnectionIds`. Text up to 4,096 characters, up to 10
   images (10 MB each) or one MP4 or MOV video (50 MB); a caption over 1,024 characters goes out as its
   own message after the media.

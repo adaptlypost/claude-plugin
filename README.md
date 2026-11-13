@@ -94,6 +94,7 @@ Put `ADAPTLYPOST_API_KEY=...` in `~/.hermes/.env`. The key works like a password
 - "Which platforms failed on yesterday's post? Retry only those."
 - "Repeat our weekly tips post every Monday at 10am."
 - "Connect our blog's RSS feed so every new article becomes a LinkedIn draft."
+- "Turn this announcement into a post on our WordPress blog and save it as a WordPress draft so I can finish it there."
 - "What were my five best posts last month by engagement, and on which platforms?"
 - "Create a connect link my client can use to add their Instagram and Facebook accounts."
 - "What's new in my inbox? Show unread comments and messages from today."
@@ -120,7 +121,7 @@ Put `ADAPTLYPOST_API_KEY=...` in `~/.hermes/.env`. The key works like a password
 
 | Tool | What it does | Changes data |
 | --- | --- | --- |
-| `create_post` | Create a post: publish immediately, schedule, or save as draft (a draft can carry a planned date). Takes first comments, per-platform thumbnails, image shapes and media, Instagram and Facebook story sharing, Instagram collaborators, user tags, AI labels and Reel audio, Facebook text backgrounds and link carousels, LinkedIn reshares, X quotes of the account's own posts, threads of replies with images, Tumblr tags, WordPress titles, categories and tags, the YouTube audio language and Google Business Profile events and offers | Yes |
+| `create_post` | Create a post: publish immediately, schedule, or save as draft (a draft can carry a planned date). Takes first comments, per-platform thumbnails, image shapes and media, Instagram and Facebook story sharing, Instagram collaborators, user tags, AI labels and Reel audio, Facebook text backgrounds and link carousels, LinkedIn reshares, X quotes of the account's own posts, threads of replies with images, Tumblr tags, WordPress titles, categories, tags and draft or pending-review status, the YouTube audio language and Google Business Profile events and offers | Yes |
 | `validate_post` | Dry-run `create_post` with the same input: every problem, per account, without creating anything | No |
 | `get_post` | Get full details of a single post by ID | No |
 | `list_posts` | List posts with filters by status, platform, date range | No |
