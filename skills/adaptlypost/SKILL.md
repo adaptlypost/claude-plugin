@@ -265,12 +265,17 @@ Each of these is a list with one entry per platform, and works on `create_post`,
 `bulk_schedule_posts` item. On `update_post`, sending the list replaces every entry; leaving it out keeps
 the stored ones.
 
-- **First comments** (`firstComments: [{ platform, text }]`) go up under the post from the same account
-  shortly after it publishes. LinkedIn (1,250 characters), X (280), Threads (500), Bluesky (300), Mastodon (500),
-  YouTube (10,000), Facebook (8,000) and Instagram (2,200) only, not on stories or private or
-  made-for-kids YouTube videos. A Facebook Page or Instagram account connected before first comments came
-  to them needs one reconnect. A failed comment never fails the post: read `firstCommentStatus` and
-  `firstCommentError` in `get_post`.
+- **First comments** (`firstComments: [{ platform, text, delayMinutes? }]`) go up under the post from the same account
+  within about a minute of it publishing (about two minutes on YouTube). LinkedIn (1,250 characters), X (280),
+  Threads (500), Bluesky (300), Mastodon (500), YouTube (10,000), Facebook (8,000) and Instagram (2,200) only,
+  not on stories or private or made-for-kids YouTube videos. `delayMinutes` (an integer from 0 to 10080, 7 days)
+  is how many minutes after the platform publishes to post the comment, and the comment then goes out within
+  about a minute of that time. Omitted or 0 means no delay. Once the post is published the delay cannot be
+  changed; deleting the post cancels a comment that has not gone out yet. A Facebook Page or Instagram account
+  connected before first comments came to them needs one reconnect. A failed comment never fails the post:
+  read `firstCommentStatus` and `firstCommentError` in `get_post`, where `firstCommentDelayMinutes` echoes the
+  delay and `firstCommentDueAt`, set once the platform publishes, says when a `PENDING` comment is due. It goes
+  out within about a minute of that time.
 - **Threads of replies** (`threadReplies: [{ platform, texts, mediaUrls? }]`) turn the post into a thread on X,
   Threads, Bluesky and Mastodon, up to 25 replies, each within that network's post length. `mediaUrls` gives
   each reply up to 4 JPEG, PNG, GIF or WEBP images from `upload_media`, one list per reply in `texts` order
