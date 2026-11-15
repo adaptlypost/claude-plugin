@@ -149,7 +149,10 @@ If the user already approved a new post word for word, you can call `create_post
   recurring post keeps publishing with nobody watching, so confirm before resuming one too.
 - **Connect links are secrets.** Create one with `create_connect_link` only when the user asks, give the
   `url` to the user alone, and never paste it into files. Suggest `revoke_connect_link`, or `maxAccounts`
-  up front, so it stops working once used.
+  up front, so it stops working once used. For a developer who shows their own connect buttons, pass
+  `returnUrl` (https, or http on localhost) and hand back `startUrls`, one per platform. The client comes
+  back to `returnUrl` with `status`, `platform`, one `accountId` per connected account, and on an error
+  `error` and `message`.
 - **Confirm `remove_account`** naming the account. It takes the account off every pending and recurring
   post, and bringing it back means connecting it again.
 - **RSS feeds post with nobody watching.** Confirm the feed, the accounts, `postMode` and the text before
