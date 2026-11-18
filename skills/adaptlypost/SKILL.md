@@ -5,12 +5,13 @@ description: >
   LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress accounts
   connected to the user's AdaptlyPost workspaces, and read their analytics, through the AdaptlyPost MCP tools.
   Also covers the inbox (comments, mentions, direct messages and Google reviews), RSS feeds, connect links,
-  removing accounts and webhooks. Use it WHENEVER the user wants to write or schedule a post, publish now,
+  removing accounts, webhooks, and setting up workspaces, members and invitations. Use it WHENEVER the user wants to write or schedule a post, publish now,
   bulk schedule, set up a recurring post, attach media, check whether a post went out, retry a failed network,
   move or cancel a scheduled post, switch workspaces, write a caption or generate an image with AI, asks how
-  posts are doing, or wants to see or answer comments, mentions, DMs or reviews. Trigger it for short asks
-  too: "post this", "schedule it for Tuesday 9am", "any new comments?", "reply to that review".
-last-updated: 2026-11-08
+  posts are doing, wants to see or answer comments, mentions, DMs or reviews, or wants to add a workspace,
+  invite or remove a teammate. Trigger it for short asks too: "post this", "schedule it for Tuesday 9am",
+  "any new comments?", "reply to that review", "invite sam as an editor".
+last-updated: 2026-11-18
 ---
 
 # AdaptlyPost
@@ -42,6 +43,7 @@ If more than 30 days have passed since `last-updated`, tell the user the skill m
 | Analytics | `get_analytics_overview`, `get_analytics_timeseries`, `get_platform_breakdown`, `list_post_analytics`, `list_top_posts`, `list_discovered_posts`, `get_analytics_sync_status`, `trigger_analytics_sync` |
 | Inbox | `get_inbox_summary`, `refresh_inbox`; comments: `list_inbox_comments`, `get_inbox_comment`, `reply_to_inbox_comment`, `hide_inbox_comment`, `unhide_inbox_comment`, `like_inbox_comment`, `unlike_inbox_comment`, `delete_inbox_comment`, `update_inbox_comments_status`; mentions: `list_inbox_mentions`, `reply_to_inbox_mention`, `update_inbox_mentions_status`; messages: `list_inbox_conversations`, `get_inbox_conversation`, `send_inbox_message`, `update_inbox_conversations_status`; reviews: `list_inbox_reviews`, `reply_to_inbox_review`, `delete_inbox_review_reply`, `update_inbox_reviews_status` |
 | Webhooks | `list_webhooks`, `get_webhook`, `create_webhook`, `update_webhook`, `test_webhook`, `delete_webhook` |
+| Team | `create_workspace`, `delete_workspace`, `list_members`, `remove_member`, `remove_organization_member`, `list_invitations`, `send_invitation`, `revoke_invitation` |
 | AI captions and images | `generate_caption`, `refine_caption`, `generate_image`, `get_image_job` |
 
 ## Sign-in
@@ -79,16 +81,16 @@ Every call acts as the signed-in member, with the role they hold in that workspa
 
 | Role | Can | Cannot |
 |------|-----|--------|
-| Admin | Everything, including removing accounts, checking Facebook pages and connect links | |
-| Editor | Create, schedule, publish, retry, bulk schedule, delete, edit any post, RSS feeds in any mode, trigger an analytics sync, manage webhooks, answer the inbox | Remove accounts, check pages, connect links |
+| Admin | Everything, including removing accounts, checking Facebook pages, connect links, workspaces, members and invitations | |
+| Editor | Create, schedule, publish, retry, bulk schedule, delete, edit any post, RSS feeds in any mode, trigger an analytics sync, manage webhooks, answer the inbox | Remove accounts, check pages, connect links, manage workspaces, members or invitations |
 | Contributor | Create and edit its own drafts, draft-mode RSS feeds, upload media, generate captions and images, read posts, analytics and the inbox | Schedule, publish, retry, bulk schedule, delete non-drafts, trigger an analytics sync, webhooks, touch other members' posts or feeds, reply to or change anything in the inbox |
-| Viewer | Read accounts, posts, RSS feeds, webhooks, analytics and the inbox | Any write, AI generation |
+| Viewer | Read accounts, posts, RSS feeds, webhooks, analytics, members and the inbox | Any write, AI generation |
 
 | Response | Meaning | What to do |
 |----------|---------|------------|
 | 403 `permission_denied` | The role cannot do this. The body names `requiredPermission` and `role` | Final. Do not retry. For a refused schedule or publish, save with `saveAsDraft: true` (keep `scheduledAt` as the draft's planned date) and tell the user a member with publish rights has to publish it. Otherwise relay the body's `message` |
 | 401 `token_issuer_lost_access` | The account behind this access is no longer in the workspace | Stop. Tell the user; signing in again through `/mcp` with a current member fixes it |
-| 403 `subscription_required` | The organization's plan does not include API access or has lapsed. Every tool fails the same way | Tell the user to renew the plan. Retrying will not help |
+| 403 `subscription_required` | The organization's plan does not include API access or has lapsed, and every tool fails the same way. From `create_workspace` or `send_invitation` it can also mean the plan has no room for another workspace or no team seat left; the error names the limit | Tell the user to renew or upgrade the plan. Retrying will not help |
 | 401 `oauth_account_not_found` | The user signed in with an email that has no AdaptlyPost account | Relay the message, which names that email. Ask them to run `/mcp`, clear the `adaptlypost` sign-in and sign in with the email they use on AdaptlyPost |
 | 403 `workspace_access_denied` | Wrong `workspaceId` | Pick one from `list_workspaces` |
 | 403 `inbox_reconnect_required` | The account lacks the platform permission for that inbox channel or action, or its token expired | Tell the user to reconnect the account in AdaptlyPost. Do not retry |
@@ -153,6 +155,10 @@ If the user already approved a new post word for word, you can call `create_post
   `returnUrl` (https, or http on localhost) and hand back `startUrls`, one per platform. The client comes
   back to `returnUrl` with `status`, `platform`, one `accountId` per connected account, and on an error
   `error` and `message`.
+- **Confirm team changes.** Before `delete_workspace`, `remove_member`, `remove_organization_member` or
+  `revoke_invitation`, show what will go (the workspace and what it holds, the member and the workspaces
+  they lose, the invited email) and wait for a yes. Confirm the email, workspaces and roles before
+  `send_invitation`.
 - **Confirm `remove_account`** naming the account. It takes the account off every pending and recurring
   post, and bringing it back means connecting it again.
 - **RSS feeds post with nobody watching.** Confirm the feed, the accounts, `postMode` and the text before
@@ -371,6 +377,30 @@ reach only a webhook that lists them, and a non-empty list means only those even
 events too when the user still wants them. `update_webhook` changes `events`; `[]` goes back to the
 default set. Inbox events arrive within about 10 minutes. `test_webhook` sends a signed test event. An endpoint is turned off
 after 20 failed deliveries in a row; `update_webhook` with `active: true` turns it back on.
+
+## Team
+
+Creating or deleting a workspace, removing someone and managing invitations need Admin in the workspace
+the call acts in. `create_workspace`, `delete_workspace` and `remove_organization_member` also need the
+signed-in member to be an organization owner or admin; otherwise they fail with `permission_denied`.
+
+- **New client.** `create_workspace` with a `name` (unique in the organization), then pass the returned
+  `id` as `workspaceId` to `create_connect_link` or `send_invitation`. Every organization owner and admin
+  becomes its admin. `connectionLimit` caps the social accounts it may connect.
+- **Delete** a workspace only when the user asks. It takes its posts, feeds, inbox items, API keys and
+  connect links with it. The default workspace, the last one and one that still has connected accounts
+  cannot be deleted; disconnect the accounts with `remove_account` first.
+- **Members.** `list_members` gives each member's `userId`, workspace `role` and `organizationRoles`.
+  `remove_member` takes them out of this workspace and revokes their API keys and connect links there; they
+  stay in the organization, and their last workspace cannot be removed. `remove_organization_member` takes
+  them out of every workspace. Nobody can remove themselves, the owner cannot be removed, and only the
+  owner removes an organization admin.
+- **Invitations.** `send_invitation` takes `email`, `workspaces` (at least one `{ workspaceId, role }`, role
+  `admin`, `editor`, `contributor` or `viewer`), `organizationRole` (`org-member` by default, `org-admin`
+  only from the owner) and an optional `creditAllowance`. The invitation is emailed and lasts 7 days. A
+  member who is not an organization admin can only invite `org-member`, to workspaces they manage, with a
+  role no higher than their own. `list_invitations` and `revoke_invitation` cover the invitations that
+  include the workspace the call acts in.
 
 ## Times
 
