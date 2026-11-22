@@ -104,7 +104,7 @@ Put `ADAPTLYPOST_API_KEY=...` in `~/.hermes/.env`. The key works like a password
 
 ## Tools
 
-88 tools. Analytics cover Facebook, Instagram, Threads, TikTok, Pinterest, Bluesky, LinkedIn, YouTube, X and Google Business Profile. Google Business Profile reports location impressions only, with no per-post numbers. Mastodon, Telegram, Tumblr and WordPress have no analytics. Connecting an account imports its posts from the last 180 days. The upload box also calls `get_upload_ticket` once per file; that tool is hidden from the model.
+89 tools. Analytics cover Facebook, Instagram, Threads, TikTok, Pinterest, Bluesky, LinkedIn, YouTube, X and Google Business Profile. Google Business Profile reports location impressions only, with no per-post numbers. Mastodon, Telegram, Tumblr and WordPress have no analytics. Connecting an account imports its posts from the last 180 days. The upload box also calls `get_upload_ticket` once per file; that tool is hidden from the model.
 
 ### Workspaces and accounts
 
@@ -162,6 +162,7 @@ Put `ADAPTLYPOST_API_KEY=...` in `~/.hermes/.env`. The key works like a password
 | --- | --- | --- |
 | `search_instagram_audio` | Search Instagram music and original sounds to add to a Reel | No |
 | `list_pinterest_boards` | List the boards of a Pinterest account; pass a board `id` as `pinterestConfigs[].boardId`, or its name as `boardName` (not both) | No |
+| `list_youtube_playlists` | List the playlists of a YouTube channel, private and unlisted ones included; pass a playlist `id` as `youtubeConfigs[].playlistId` | No |
 | `list_wordpress_categories` | List the categories of a WordPress site; pass their `id`s as `wordpressConfigs[].categoryIds` | No |
 
 ### Recurring posts
