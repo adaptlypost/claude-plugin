@@ -319,7 +319,9 @@ the stored ones.
   `mediaOverrideAltTexts` on that platform.
 
 LinkedIn text can mention a company page as `@[Page Name](urn:li:organization:<id>)`, with the page name
-exactly as LinkedIn shows it.
+exactly as LinkedIn shows it. `resolve_linkedin_organization` takes the page URL or its vanity name (the
+part after `linkedin.com/company/`) and returns that mention ready to paste. LinkedIn matches the exact
+vanity name only, so ask the user for the page URL when you don't know it.
 
 Platform names are uppercase: `INSTAGRAM`, `TIKTOK`, `YOUTUBE`, `TWITTER` (X), `LINKEDIN`, `FACEBOOK`,
 `PINTEREST`, `THREADS`, `BLUESKY`, `MASTODON`, `GOOGLE_BUSINESS`, `TUMBLR`, `TELEGRAM`, `WORDPRESS`. Content types: `TEXT`, `IMAGE`, `VIDEO`, `CAROUSEL`,
