@@ -183,7 +183,7 @@ If the user already approved a new post word for word, you can call `create_post
   Send `boardId` or `boardName`, never both in one config (400). A board belongs to one Pinterest account,
   so each config's board must be on its `connectionId`. With neither, the pin goes to a public board
   named "AdaptlyPost", created on the account the first time it is needed; leave both out only when the
-  user is happy with that board. A 400 from `list_pinterest_boards` usually means the user has to
+  user is happy with that board. The same config takes `aiGenerated` (see AI labels). A 400 from `list_pinterest_boards` usually means the user has to
   reconnect the Pinterest account in the app.
 - **YouTube playlists**: to add the uploaded video to a playlist, call `list_youtube_playlists` with the
   YouTube account's id; it returns every playlist of the channel, private and unlisted ones included. Ask
@@ -218,8 +218,16 @@ If the user already approved a new post word for word, you can call `create_post
   `youtubeConfigs.aiGenerated` shows YouTube's "Altered or synthetic content" label;
   `tiktokConfigs.aiGenerated` labels TikTok videos; `facebookConfigs.aiGenerated` shows Facebook's "AI info"
   label on every `VIDEO` post, whatever its `postType` (Facebook publishes every video as a reel, and a video
-  story carries the label too), and photos, carousels and text posts are refused with 400. Set them when the
-  user made the media with AI.
+  story carries the label too), and photos, carousels and text posts are refused with 400.
+  `twitterConfigs.aiGenerated` sets `made_with_ai` on the X post, and X labels it;
+  `pinterestConfigs.aiGenerated` sends Pinterest the `AI_MODIFIED` disclosure, which shows an "AI modified"
+  label on image, video and carousel Pins; `threadsConfigs.aiGenerated` shows Threads' "AI info" label on
+  text, image, video and carousel posts (on a carousel the label covers the whole post; thread replies do
+  not carry it). `threadsConfigs` items are `{ connectionId, aiGenerated? }`, and `connectionId` must match
+  an entry in `threadsConnectionIds`. Set an `aiGenerated` flag only when the user says the content is
+  AI-generated; never infer it, not even from media made with `generate_image`. Omit it or send `false` for
+  no label. `get_post` and `list_posts` show `twitterAiGenerated`, `pinterestAiGenerated` and
+  `threadsAiGenerated` on a platform whose copy carries the label.
 - **Instagram trial reels**: `instagramConfigs.trialGraduation` (`MANUAL` or `SS_PERFORMANCE`) works only for
   a single video posted as a reel or feed video, on an account Instagram has enabled for trial reels.
 - **LinkedIn documents** (PDF, PPT, PPTX, DOC, DOCX): `contentType: DOCUMENT`, exactly one file in
@@ -228,7 +236,7 @@ If the user already approved a new post word for word, you can call `create_post
 - **LinkedIn reshares**: `linkedinConfigs.reshareOf` takes a `urn:li:share:` or `urn:li:ugcPost:` URN (the
   `platformPostId` of an earlier LinkedIn post) or a `linkedin.com/feed/update/<urn>` link, and posts the
   text as commentary on it. `urn:li:activity:` links fail. Not available in bulk.
-- **X quote posts**: `twitterConfigs.quoteOf` takes an `x.com/<handle>/status/<id>` link or the post's
+- **X quote posts**: `twitterConfigs` items are `{ connectionId, quoteOf?, aiGenerated? }`. `quoteOf` takes an `x.com/<handle>/status/<id>` link or the post's
   numeric id (the `platformPostId` of an earlier X post) and posts the text as a quote of it. X only lets an
   account quote its own posts or posts that mention it, so a link naming another handle fails. Needs text,
   drops media on that account, and costs the same as any X post. Not available in bulk.
@@ -349,9 +357,9 @@ Platform names are uppercase: `INSTAGRAM`, `TIKTOK`, `YOUTUBE`, `TWITTER` (X), `
   (have the user reconnect the channel first if it was disconnected).
 - **Bulk**: `bulk_schedule_posts` takes up to 100 posts that share the same platforms, accounts and
   configs; an item can carry its own `tiktokConfigs`, `instagramConfigs`, `facebookConfigs`,
-  `youtubeConfigs`, `pinterestConfigs`, `googleBusinessConfigs`, `tumblrConfigs` or `wordpressConfigs` to replace the shared
+  `youtubeConfigs`, `pinterestConfigs`, `threadsConfigs`, `googleBusinessConfigs`, `tumblrConfigs` or `wordpressConfigs` to replace the shared
   ones, plus its own `firstComments`, `threadReplies`, `platformThumbnails`, `platformMedia` and
-  `platformAspectRatios`.
+  `platformAspectRatios`. `twitterConfigs` is not available in bulk, so X copies in a batch carry no AI label.
   Run `validate_bulk_posts` with the same input first and fix every item it flags. It has no draft mode,
   so show the whole batch as a table (time, network, text, media) and get one explicit "yes" first. Read
   every result row; one bad item fails alone.
