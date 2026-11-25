@@ -239,7 +239,7 @@ If the user already approved a new post word for word, you can call `create_post
 - **X quote posts**: `twitterConfigs` items are `{ connectionId, quoteOf?, aiGenerated? }`. `quoteOf` takes an `x.com/<handle>/status/<id>` link or the post's
   numeric id (the `platformPostId` of an earlier X post) and posts the text as a quote of it. X only lets an
   account quote its own posts or posts that mention it, so a link naming another handle fails. Needs text,
-  drops media on that account, and costs the same as any X post. Not available in bulk.
+  drops media on that account, and costs the same as any X post.
 - **Facebook text backgrounds**: `facebookConfigs.textFormatPresetId` (for example `106018623298955`, solid
   purple) on a `TEXT` post with no media and at most 130 characters. If Facebook refuses it, the post goes
   out as plain text.
@@ -357,9 +357,9 @@ Platform names are uppercase: `INSTAGRAM`, `TIKTOK`, `YOUTUBE`, `TWITTER` (X), `
   (have the user reconnect the channel first if it was disconnected).
 - **Bulk**: `bulk_schedule_posts` takes up to 100 posts that share the same platforms, accounts and
   configs; an item can carry its own `tiktokConfigs`, `instagramConfigs`, `facebookConfigs`,
-  `youtubeConfigs`, `pinterestConfigs`, `threadsConfigs`, `googleBusinessConfigs`, `tumblrConfigs` or `wordpressConfigs` to replace the shared
+  `youtubeConfigs`, `pinterestConfigs`, `threadsConfigs`, `twitterConfigs`, `googleBusinessConfigs`, `tumblrConfigs` or `wordpressConfigs` to replace the shared
   ones, plus its own `firstComments`, `threadReplies`, `platformThumbnails`, `platformMedia` and
-  `platformAspectRatios`. `twitterConfigs` is not available in bulk, so X copies in a batch carry no AI label.
+  `platformAspectRatios`. `twitterKeepLinks` and `linkedinConfigs` are not available in bulk.
   Run `validate_bulk_posts` with the same input first and fix every item it flags. It has no draft mode,
   so show the whole batch as a table (time, network, text, media) and get one explicit "yes" first. Read
   every result row; one bad item fails alone.
