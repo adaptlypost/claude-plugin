@@ -93,6 +93,7 @@ Put `ADAPTLYPOST_API_KEY=...` in `~/.hermes/.env`. The key works like a password
 - "Check this post for problems on every platform before you schedule it."
 - "Which platforms failed on yesterday's post? Retry only those."
 - "Repeat our weekly tips post every Monday at 10am."
+- "Label this post Acme, then show me every scheduled post with the Acme label."
 - "Connect our blog's RSS feed so every new article becomes a LinkedIn draft."
 - "Turn this announcement into a post on our WordPress blog and save it as a WordPress draft so I can finish it there."
 - "What were my five best posts last month by engagement, and on which platforms?"
@@ -104,7 +105,7 @@ Put `ADAPTLYPOST_API_KEY=...` in `~/.hermes/.env`. The key works like a password
 
 ## Tools
 
-89 tools. Analytics cover Facebook, Instagram, Threads, TikTok, Pinterest, Bluesky, LinkedIn, YouTube, X and Google Business Profile. Google Business Profile reports location impressions only, with no per-post numbers. Mastodon, Telegram, Tumblr and WordPress have no analytics. Connecting an account imports its posts from the last 180 days. The upload box also calls `get_upload_ticket` once per file; that tool is hidden from the model.
+90 tools. Analytics cover Facebook, Instagram, Threads, TikTok, Pinterest, Bluesky, LinkedIn, YouTube, X and Google Business Profile. Google Business Profile reports location impressions only, with no per-post numbers. Mastodon, Telegram, Tumblr and WordPress have no analytics. Connecting an account imports its posts from the last 180 days. The upload box also calls `get_upload_ticket` once per file; that tool is hidden from the model.
 
 ### Workspaces and accounts
 
@@ -138,7 +139,8 @@ Put `ADAPTLYPOST_API_KEY=...` in `~/.hermes/.env`. The key works like a password
 | `create_post` | Create a post: publish immediately, schedule, or save as draft (a draft can carry a planned date). Takes first comments, per-platform thumbnails, image shapes and media, Instagram and Facebook story sharing, Instagram collaborators, user tags, AI labels and Reel audio, Facebook text backgrounds and link carousels, LinkedIn reshares, X quotes of the account's own posts, threads of replies with images, Tumblr tags, WordPress titles, categories, tags and draft or pending-review status, the YouTube audio language and Google Business Profile events and offers | Yes |
 | `validate_post` | Dry-run `create_post` with the same input: every problem, per account, without creating anything | No |
 | `get_post` | Get full details of a single post by ID | No |
-| `list_posts` | List posts with filters by status, platform, date range | No |
+| `list_posts` | List posts with filters by status, platform, label, date range | No |
+| `list_labels` | List the workspace's labels; pass their `id`s as `labelIds` on a post or as the `list_posts` filter | No |
 | `update_post` | Update a scheduled or draft post, or a post that failed on every platform, which becomes a draft again | Yes |
 | `delete_post` | Delete a post record; cancels a draft or scheduled post, never removes content already live | Yes |
 | `unschedule_post` | Turn a scheduled post back into an undated draft without deleting it | Yes |
@@ -282,6 +284,9 @@ The account was connected before AdaptlyPost asked for that permission, its toke
 
 **Can it upload my own photos and videos?**
 Yes. `upload_media` takes public URLs, base64 or ChatGPT attachments; `open_upload_widget` shows an upload box in ChatGPT and Claude, or gives an upload link where a box can't show.
+
+**Can it label posts by brand or client?**
+Yes. Create the labels in the AdaptlyPost app, then `list_labels` returns their ids. Pass them as `labelIds` on `create_post` or `update_post`, and filter `list_posts` by them. Labels stay inside AdaptlyPost and are never sent to a platform.
 
 **What if my video is too long for TikTok, or X takes only 4 images?**
 Give that platform its own media with `platformMedia`, such as a shorter cut for TikTok or four of the images for X. The other platforms keep the post's media. AdaptlyPost checks each override against its own platform's limits only.
