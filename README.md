@@ -1,20 +1,12 @@
-# AdaptlyPost plugin for Claude Code and Hermes Agent
+# AdaptlyPost plugin for Claude Code
 
-Draft, schedule, publish and measure posts on Instagram, TikTok, YouTube, X (Twitter), LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress, all 14 platforms AdaptlyPost supports, answer comments, mentions, direct messages and Google reviews, and set up workspaces, members and invitations, from Claude Code or Hermes Agent.
+Draft, schedule, publish and measure posts on Instagram, TikTok, YouTube, X (Twitter), LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress, all 14 platforms AdaptlyPost supports, answer comments, mentions, direct messages and Google reviews, and set up workspaces, members and invitations, from Claude Code.
 
 ## What this repo is
 
-This repo is the AdaptlyPost plugin for Claude Code and Hermes Agent, and nothing else. Both read the same package: `.claude-plugin/plugin.json`, `.mcp.json` and `.claude-plugin/marketplace.json` for Claude Code, `plugin.json` and `mcp.json` for Hermes, and one skill in [`skills/adaptlypost/`](./skills/adaptlypost). The plugin connects to the hosted MCP server at `https://mcp.adaptlypost.com/mcp`, signs in with OAuth and never asks for an API key. Its skill only calls MCP tools and ships no script, because the Claude plugin directory and the Hermes catalog both review for that.
+This repo is the AdaptlyPost plugin for Claude Code, and nothing else: `.claude-plugin/plugin.json`, `.claude-plugin/marketplace.json`, `.mcp.json` and one skill in [`skills/adaptlypost/`](./skills/adaptlypost). The plugin connects to the hosted MCP server at `https://mcp.adaptlypost.com/mcp` and signs in with OAuth. Its skill only calls MCP tools and ships no script.
 
-Everything else lives in [adaptlypost/agent](https://github.com/adaptlypost/agent): the agent skill for `npx skills add` (a CLI script with an API key), the source of the MCP server, and the Gemini CLI extension.
-
-| You use | Install | Sign-in |
-| --- | --- | --- |
-| Claude Code | `/plugin install adaptlypost --marketplace adaptlypost/claude-plugin` | OAuth |
-| Hermes Agent | `hermes plugins install adaptlypost` | OAuth |
-| Gemini CLI | `gemini extensions install https://github.com/adaptlypost/agent` | OAuth |
-| Claude Desktop, Cursor, ChatGPT or any MCP client | Add `https://mcp.adaptlypost.com/mcp` as a remote server | OAuth, or an API key header |
-| Cursor, Codex, Windsurf, Claude Code or any agent with skills | `npx skills add adaptlypost/agent` | API key |
+Hermes Agent has its own plugin in [adaptlypost/hermes-plugin](https://github.com/adaptlypost/hermes-plugin) (`hermes plugins install adaptlypost`). The MCP server, the Gemini CLI extension and the setup for every other client live in [adaptlypost/agent](https://github.com/adaptlypost/agent).
 
 ## Install in Claude Code
 
@@ -43,46 +35,6 @@ A sign-in reaches every workspace you belong to. Claude calls `list_workspaces` 
 In each workspace Claude acts with your own role there. Admin does everything, Editor creates, schedules and publishes, Contributor creates and edits its own drafts, uploads media and generates captions and images but cannot schedule or publish, Viewer reads.
 
 An operation outside the role answers 403 with `code: permission_denied`. The skill tells Claude to stop, save a draft where that applies, and ask a workspace member to publish, instead of retrying.
-
-## Install in Hermes Agent
-
-You need Hermes Agent 0.21.6 or newer and Node.js 20.18.1 or newer with `npx` on your `PATH`.
-
-From the Hermes plugin catalog:
-
-```bash
-hermes plugins install adaptlypost
-hermes plugins enable adaptlypost
-```
-
-Or straight from GitHub:
-
-```bash
-hermes plugins install adaptlypost/claude-plugin --no-enable
-hermes plugins enable adaptlypost
-```
-
-Start a new session. The first time the server starts, your browser opens the AdaptlyPost sign-in page. Sign in with the email you use on AdaptlyPost and approve. The token is kept and refreshed, so you sign in once. If the tools don't show up after you sign in, run `/reload-mcp`.
-
-The Hermes package is `plugin.json`, `mcp.json` and the skill in `skills/adaptlypost/`. It ships no code of its own. Before you install, know that:
-
-- `mcp.json` runs the pinned `mcp-remote@0.1.49` through `npx`, which downloads it from npm on first use. It opens a local callback port for the sign-in and stores the OAuth tokens in `~/.mcp-auth`.
-- Every tool call goes to `mcp.adaptlypost.com` and acts on your AdaptlyPost account, with your own role in each workspace. The server decides the tool set at runtime, so the pinned commit doesn't cover it.
-- `plugin.json` marks the server `untrusted`. Hermes asks before every tool the server doesn't mark read-only (creating, scheduling, publishing and deleting posts, inbox replies and messages, removing accounts, connect links, webhooks, workspaces, members and invitations, and AI generation), and refuses those tools in cron and other unattended runs.
-- A post you publish goes out to your connected social accounts. `generate_caption`, `refine_caption` and `generate_image` spend AdaptlyPost AI credits.
-- The package sends no telemetry.
-
-On a server or another machine without a browser, skip the plugin and add the server to `~/.hermes/config.yaml` with an API key from [adaptlypost.com/api-tokens](https://adaptlypost.com/api-tokens):
-
-```yaml
-mcp_servers:
-  adaptlypost:
-    url: "https://mcp.adaptlypost.com/mcp"
-    headers:
-      Authorization: "Bearer ${ADAPTLYPOST_API_KEY}"
-```
-
-Put `ADAPTLYPOST_API_KEY=...` in `~/.hermes/.env`. The key works like a password for your AdaptlyPost account, so don't paste it into a chat.
 
 ## Example prompts
 
@@ -257,10 +209,10 @@ The inbox holds comments on the account's posts (Facebook, Instagram, Threads, Y
 
 ## Roles, permissions and safety
 
-- Every call runs under a workspace role: Admin, Editor, Contributor or Viewer. An API key carries the role it was created with and never does more than the member who created it; an OAuth sign-in acts with the member's own role in each workspace.
-- Admin does everything. Editor creates, schedules and publishes. Contributor creates and edits its own drafts, uploads media and generates captions and images, but cannot schedule, publish, retry, bulk schedule or delete non-drafts. Viewer only reads. Give an agent that should not post on its own a Contributor key, or sign in as a Contributor.
-- An action outside the role answers 403 with `code: permission_denied`. The tool tells the agent to save a draft and ask a workspace member to publish, not to retry or look for another key.
-- Read-only tools carry `readOnlyHint`, so clients that ask before a write (Claude, ChatGPT, Hermes) ask before creating, scheduling, publishing or deleting anything.
+- Every call runs under a workspace role: Admin, Editor, Contributor or Viewer. The sign-in acts with your own role in each workspace.
+- Admin does everything. Editor creates, schedules and publishes. Contributor creates and edits its own drafts, uploads media and generates captions and images, but cannot schedule, publish, retry, bulk schedule or delete non-drafts. Viewer only reads. To keep Claude from posting on its own, sign in as a Contributor.
+- An action outside the role answers 403 with `code: permission_denied`. The tool tells Claude to save a draft and ask a workspace member to publish, not to retry.
+- Read-only tools carry `readOnlyHint`, so Claude Code asks before creating, scheduling, publishing or deleting anything.
 - `generate_caption`, `refine_caption` and `generate_image` spend AdaptlyPost AI credits on every call: 2 credits per caption, 2 or 4 per image.
 - Creating and deleting workspaces, removing members and managing invitations need Admin, and creating or deleting a workspace or removing someone from the organization also needs an organization owner or admin. The agent confirms before it deletes a workspace, removes a member or revokes an invitation, and shows what will go.
 - Every role can read the inbox. Replying, messaging, hiding, liking, deleting and marking inbox items need Admin or Editor. Replies and messages reach real people, so the agent shows the text and what it answers before it sends.
@@ -269,7 +221,7 @@ The inbox holds comments on the account's posts (Facebook, Instagram, Threads, Y
 ## FAQ
 
 **Do I need an API key?**
-No. Point your client at `https://mcp.adaptlypost.com/mcp` and sign in with the email you use on AdaptlyPost. Keys are for headless agents and clients without OAuth.
+No. Run `/mcp`, pick `adaptlypost` and sign in with the email you use on AdaptlyPost. The plugin never asks for a key.
 
 **Will the agent post without asking me?**
 Every tool that creates, schedules, publishes or deletes is marked as a write, so clients that confirm writes ask first. For a hard limit, use a Contributor role: it can only save drafts.
@@ -292,13 +244,14 @@ Yes. Create the labels in the AdaptlyPost app, then `list_labels` returns their 
 **What if my video is too long for TikTok, or X takes only 4 images?**
 Give that platform its own media with `platformMedia`, such as a shorter cut for TikTok or four of the images for X. The other platforms keep the post's media. AdaptlyPost checks each override against its own platform's limits only.
 
-**Can I use AdaptlyPost outside Claude Code and Hermes?**
-Yes. Claude Desktop, ChatGPT, Cursor, Windsurf, VS Code, Codex and Gemini CLI connect to the same server at `https://mcp.adaptlypost.com/mcp`. The setup for each is in [adaptlypost/agent](https://github.com/adaptlypost/agent#setup-by-client).
+**Can I use AdaptlyPost outside Claude Code?**
+Yes. Hermes Agent has its own plugin in [adaptlypost/hermes-plugin](https://github.com/adaptlypost/hermes-plugin). Claude Desktop, ChatGPT, Cursor, Windsurf, VS Code, Codex and Gemini CLI connect to the same server at `https://mcp.adaptlypost.com/mcp`. The setup for each is in [adaptlypost/agent](https://github.com/adaptlypost/agent#setup-by-client).
 
 ## Links
 
 - Product: [adaptlypost.com](https://adaptlypost.com)
 - AI agents: [adaptlypost.com/features/agents](https://adaptlypost.com/features/agents)
+- Hermes Agent plugin: [adaptlypost/hermes-plugin](https://github.com/adaptlypost/hermes-plugin)
 - Skill, MCP server and Gemini extension: [adaptlypost/agent](https://github.com/adaptlypost/agent)
 - Privacy policy: [adaptlypost.com/privacy](https://adaptlypost.com/privacy)
 
