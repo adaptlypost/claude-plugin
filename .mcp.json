@@ -2,7 +2,7 @@
   "mcpServers": {
     "adaptlypost": {
       "type": "http",
-      "url": "https://mcp.adaptlypost.com/mcp"
+      "url": "https://mcp.adaptlypost.com/mcp/claude-plugin"
     }
   }
 }

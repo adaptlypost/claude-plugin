@@ -1,6 +1,6 @@
 ---
 name: adaptlypost
-description: Draft, schedule, publish and review social media posts on the Instagram, TikTok, YouTube, X (Twitter), LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress accounts connected to the user's AdaptlyPost workspaces, and read their analytics, with the AdaptlyPost MCP tools. Also covers the inbox (comments, mentions, DMs and Google reviews), RSS feeds, connect links, removing accounts, webhooks, workspaces, members and invitations. Use it WHENEVER the user wants to write or schedule a post, publish now, bulk schedule, set up a recurring post, attach media, check whether a post went out, retry a failed network, move or cancel a scheduled post, write a caption or generate an image with AI, asks how posts are doing, wants to see or answer comments, mentions, DMs or reviews, or wants to add a workspace, invite or remove a teammate. Trigger it for short asks too, like "post this", "schedule it for Tuesday 9am", "reply to that review", "invite sam".
+description: Draft, schedule, publish and review social media posts on the Instagram, TikTok, YouTube, X (Twitter), LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress accounts connected to the user's AdaptlyPost workspaces, and read their analytics, with the AdaptlyPost MCP tools. Also covers the inbox (comments, mentions, DMs and Google reviews), RSS feeds, connect links, removing accounts, webhooks, workspaces, members and invitations. Use it WHENEVER the user wants to write or schedule a post, publish now, bulk schedule, set up a recurring post, attach media, check whether a post went out, retry a failed network, move or cancel a scheduled post, write or rewrite a caption with AI, asks how posts are doing, wants to see or answer comments, mentions, DMs or reviews, or wants to add a workspace, invite or remove a teammate. Trigger it for short asks too, like "post this", "schedule it for Tuesday 9am", "reply to that review", "invite sam".
 metadata:
   last-updated: 2026-11-27
 ---
@@ -37,7 +37,7 @@ If more than 30 days have passed since `last-updated`, tell the user the skill m
 | Inbox | `get_inbox_summary`, `refresh_inbox`; comments: `list_inbox_comments`, `get_inbox_comment`, `reply_to_inbox_comment`, `hide_inbox_comment`, `unhide_inbox_comment`, `like_inbox_comment`, `unlike_inbox_comment`, `delete_inbox_comment`, `update_inbox_comments_status`; mentions: `list_inbox_mentions`, `reply_to_inbox_mention`, `update_inbox_mentions_status`; messages: `list_inbox_conversations`, `get_inbox_conversation`, `send_inbox_message`, `update_inbox_conversations_status`; reviews: `list_inbox_reviews`, `reply_to_inbox_review`, `delete_inbox_review_reply`, `update_inbox_reviews_status` |
 | Webhooks | `list_webhooks`, `get_webhook`, `create_webhook`, `update_webhook`, `test_webhook`, `delete_webhook` |
 | Team | `create_workspace`, `delete_workspace`, `list_members`, `remove_member`, `remove_organization_member`, `list_invitations`, `send_invitation`, `revoke_invitation` |
-| AI captions and images | `generate_caption`, `refine_caption`, `generate_image`, `get_image_job` |
+| AI captions | `generate_caption`, `refine_caption` |
 
 ## Sign-in
 
@@ -76,7 +76,7 @@ Every call acts as the signed-in member, with the role they hold in that workspa
 |------|-----|--------|
 | Admin | Everything, including removing accounts, checking Facebook pages, connect links, workspaces, members and invitations | |
 | Editor | Create, schedule, publish, retry, bulk schedule, delete, edit any post, RSS feeds in any mode, trigger an analytics sync, manage webhooks, answer the inbox | Remove accounts, check pages, connect links, manage workspaces, members or invitations |
-| Contributor | Create and edit its own drafts, draft-mode RSS feeds, upload media, generate captions and images, read posts, analytics and the inbox | Schedule, publish, retry, bulk schedule, delete non-drafts, trigger an analytics sync, webhooks, touch other members' posts or feeds, reply to or change anything in the inbox |
+| Contributor | Create and edit its own drafts, draft-mode RSS feeds, upload media, generate captions, read posts, analytics and the inbox | Schedule, publish, retry, bulk schedule, delete non-drafts, trigger an analytics sync, webhooks, touch other members' posts or feeds, reply to or change anything in the inbox |
 | Viewer | Read accounts, posts, RSS feeds, webhooks, analytics, members and the inbox | Any write, AI generation |
 
 | Response | Meaning | What to do |
@@ -222,7 +222,7 @@ If the user already approved a new post word for word, you can call `create_post
   text, image, video and carousel posts (on a carousel the label covers the whole post; thread replies do
   not carry it). `threadsConfigs` items are `{ connectionId, aiGenerated? }`, and `connectionId` must match
   an entry in `threadsConnectionIds`. Set an `aiGenerated` flag only when the user says the content is
-  AI-generated; never infer it, not even from media made with `generate_image`. Omit it or send `false` for
+  AI-generated; never infer it. Omit it or send `false` for
   no label. `get_post` and `list_posts` show `twitterAiGenerated`, `pinterestAiGenerated` and
   `threadsAiGenerated` on a platform whose copy carries the label.
 - **Instagram trial reels**: `instagramConfigs.trialGraduation` (`MANUAL` or `SS_PERFORMANCE`) works only for
@@ -430,26 +430,19 @@ Ask the user's timezone once per session unless they already gave it. Convert ev
 absolute ISO 8601 instant for `scheduledAt`; the `timezone` field is stored for display and does not shift
 the time. A time in the past publishes immediately, so check before sending.
 
-## AI captions and images
+## AI captions
 
-Use the AI tools when the user asks for a caption or an image, or says "write something about X" without
+Use the AI tools when the user asks for a caption, or says "write something about X" without
 giving text. For a caption the user already wrote, just use their text.
 
 - **Captions.** `generate_caption` writes one from a `prompt`; `refine_caption` rewrites `originalText`
   from an instruction ("shorter", "add a question"). Pass `platform` to keep it within that network's
   length. Both return `{ caption }` and save nothing. Show it, then put it in a draft as usual.
-- **Images.** `generate_image` does not return the image. It returns a `jobId` right away. Call
-  `get_image_job` every few seconds until `status` is `completed` or `failed`, usually 10 to 40 seconds,
-  and stop after a couple of minutes. A completed job's `imageUrl` is public and goes straight into
-  `mediaUrls`; no `upload_media` needed. Pick `aspectRatio` for the target network (9:16 for stories and
-  reels, 4:5 for the Instagram feed). Reuse `sessionId` to keep related images together.
-- **Credits.** Each caption costs 2 of the member's AI credits, a standard image 2 and a premium image 4,
-  refunded when generation fails. A member who connected their own AI provider key in the app pays no
-  credits. With no credits left a caption call fails and an image job ends `failed` with the reason in
-  `error`: tell the user to top up or upgrade, or, for a team member, to ask the organization owner or an
+- **Credits.** Each caption costs 2 of the member's AI credits. A member who connected their own AI provider key in the app pays no
+  credits. With no credits left a caption call fails with the reason in the error: tell the user to top up or upgrade, or, for a team member, to ask the organization owner or an
   admin for a larger AI credit allowance. Do not retry.
 - Generate only what the user asked for. Offer one or two variations, not a loop of them.
-- All four need the `ai.generate` permission: Admin, Editor and Contributor have it, Viewer does not.
+- Both need the `ai.generate` permission: Admin, Editor and Contributor have it, Viewer does not.
 
 ## Inbox
 

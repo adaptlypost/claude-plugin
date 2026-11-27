@@ -26,13 +26,13 @@ On Claude Code older than 2.1.275, add the marketplace first:
 1. Create an account at [adaptlypost.com](https://adaptlypost.com) and connect your social media accounts.
 2. In Claude Code, run `/mcp`, pick `adaptlypost` and sign in with the email you use on AdaptlyPost.
 
-The plugin talks to AdaptlyPost only through its MCP server at `mcp.adaptlypost.com`, signed in with OAuth. It never asks for an API key and reads nothing from your environment or config files.
+The plugin talks to AdaptlyPost only through its MCP server at `https://mcp.adaptlypost.com/mcp/claude-plugin`, signed in with OAuth. That endpoint serves every AdaptlyPost tool except AI image generation, which the Claude plugin directory doesn't allow; to make images with AI, use the AdaptlyPost app. It never asks for an API key and reads nothing from your environment or config files.
 
 ### Workspaces and roles
 
 A sign-in reaches every workspace you belong to. Claude calls `list_workspaces` to see them and passes a workspace id to the other tools; without one it works in the workspace `list_workspaces` marks `current`.
 
-In each workspace Claude acts with your own role there. Admin does everything, Editor creates, schedules and publishes, Contributor creates and edits its own drafts, uploads media and generates captions and images but cannot schedule or publish, Viewer reads.
+In each workspace Claude acts with your own role there. Admin does everything, Editor creates, schedules and publishes, Contributor creates and edits its own drafts, uploads media and generates captions but cannot schedule or publish, Viewer reads.
 
 An operation outside the role answers 403 with `code: permission_denied`. The skill tells Claude to stop, save a draft where that applies, and ask a workspace member to publish, instead of retrying.
 
@@ -57,7 +57,7 @@ An operation outside the role answers 403 with `code: permission_denied`. The sk
 
 ## Tools
 
-91 tools. Analytics cover Facebook, Instagram, Threads, TikTok, Pinterest, Bluesky, LinkedIn, YouTube, X and Google Business Profile. Google Business Profile reports location impressions only, with no per-post numbers. Mastodon, Telegram, Tumblr and WordPress have no analytics. Connecting an account imports its posts from the last 180 days. The upload box also calls `get_upload_ticket` once per file; that tool is hidden from the model.
+89 tools. Analytics cover Facebook, Instagram, Threads, TikTok, Pinterest, Bluesky, LinkedIn, YouTube, X and Google Business Profile. Google Business Profile reports location impressions only, with no per-post numbers. Mastodon, Telegram, Tumblr and WordPress have no analytics. Connecting an account imports its posts from the last 180 days. The upload box also calls `get_upload_ticket` once per file; that tool is hidden from the model.
 
 ### Workspaces and accounts
 
@@ -198,22 +198,20 @@ The inbox holds comments on the account's posts (Facebook, Instagram, Threads, Y
 | `delete_webhook` | Delete an endpoint | Yes |
 | `test_webhook` | Send a signed `webhook.test` event and see how the endpoint answered | Yes |
 
-### AI captions and images
+### AI captions
 
 | Tool | What it does | Changes data |
 | --- | --- | --- |
 | `generate_caption` | Write a caption from a prompt, kept within a platform's character limit; 2 AI credits | Yes |
 | `refine_caption` | Rewrite an existing caption from an instruction, or continue a partial one; 2 AI credits | Yes |
-| `generate_image` | Start an image generation and get a `jobId`; 2 credits standard, 4 premium | Yes |
-| `get_image_job` | Poll an image job until `completed` (with a public `imageUrl`) or `failed` | No |
 
 ## Roles, permissions and safety
 
 - Every call runs under a workspace role: Admin, Editor, Contributor or Viewer. The sign-in acts with your own role in each workspace.
-- Admin does everything. Editor creates, schedules and publishes. Contributor creates and edits its own drafts, uploads media and generates captions and images, but cannot schedule, publish, retry, bulk schedule or delete non-drafts. Viewer only reads. To keep Claude from posting on its own, sign in as a Contributor.
+- Admin does everything. Editor creates, schedules and publishes. Contributor creates and edits its own drafts, uploads media and generates captions, but cannot schedule, publish, retry, bulk schedule or delete non-drafts. Viewer only reads. To keep Claude from posting on its own, sign in as a Contributor.
 - An action outside the role answers 403 with `code: permission_denied`. The tool tells Claude to save a draft and ask a workspace member to publish, not to retry.
 - Read-only tools carry `readOnlyHint`, so Claude Code asks before creating, scheduling, publishing or deleting anything.
-- `generate_caption`, `refine_caption` and `generate_image` spend AdaptlyPost AI credits on every call: 2 credits per caption, 2 or 4 per image.
+- `generate_caption` and `refine_caption` spend AdaptlyPost AI credits on every call: 2 credits per caption.
 - Creating and deleting workspaces, removing members and managing invitations need Admin, and creating or deleting a workspace or removing someone from the organization also needs an organization owner or admin. The agent confirms before it deletes a workspace, removes a member or revokes an invitation, and shows what will go.
 - Every role can read the inbox. Replying, messaging, hiding, liking, deleting and marking inbox items need Admin or Editor. Replies and messages reach real people, so the agent shows the text and what it answers before it sends.
 - Without an API-capable plan every call answers 403 with `code: subscription_required`. A 429 carries `Retry-After`.
