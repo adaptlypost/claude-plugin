@@ -1,17 +1,8 @@
 ---
 name: adaptlypost
-description: >
-  Draft, schedule, publish and review social media posts on the Instagram, TikTok, YouTube, X (Twitter),
-  LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress accounts
-  connected to the user's AdaptlyPost workspaces, and read their analytics, with the AdaptlyPost MCP tools.
-  Also covers the inbox (comments, mentions, DMs and Google reviews), RSS feeds, connect links,
-  removing accounts, webhooks, workspaces, members and invitations. Use it WHENEVER the user wants to write or schedule a post, publish now,
-  bulk schedule, set up a recurring post, attach media, check whether a post went out, retry a failed network,
-  move or cancel a scheduled post, write a caption or generate an image with AI, asks how
-  posts are doing, wants to see or answer comments, mentions, DMs or reviews, or wants to add a workspace,
-  invite or remove a teammate. Trigger it for short asks too: "post this", "schedule it for Tuesday 9am",
-  "reply to that review", "invite sam".
-last-updated: 2026-11-27
+description: Draft, schedule, publish and review social media posts on the Instagram, TikTok, YouTube, X (Twitter), LinkedIn, Facebook, Pinterest, Threads, Bluesky, Mastodon, Google Business Profile, Tumblr, Telegram and WordPress accounts connected to the user's AdaptlyPost workspaces, and read their analytics, with the AdaptlyPost MCP tools. Also covers the inbox (comments, mentions, DMs and Google reviews), RSS feeds, connect links, removing accounts, webhooks, workspaces, members and invitations. Use it WHENEVER the user wants to write or schedule a post, publish now, bulk schedule, set up a recurring post, attach media, check whether a post went out, retry a failed network, move or cancel a scheduled post, write a caption or generate an image with AI, asks how posts are doing, wants to see or answer comments, mentions, DMs or reviews, or wants to add a workspace, invite or remove a teammate. Trigger it for short asks too, like "post this", "schedule it for Tuesday 9am", "reply to that review", "invite sam".
+metadata:
+  last-updated: 2026-11-27
 ---
 
 # AdaptlyPost
